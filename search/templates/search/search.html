@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<section class="medium">
+  <h1 class="h3 mb-3">Find your item</h1>
+
+  {# method="get": the search words go in the address, so a search can be bookmarked or shared #}
+  <form method="get" role="search" class="mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">{% include 'includes/field.html' with field=form.q %}</div>
+      <div class="col-6 col-md-3">{% include 'includes/field.html' with field=form.category %}</div>
+      <div class="col-6 col-md-2">{% include 'includes/field.html' with field=form.place %}</div>
+      <div class="col-12 col-md-2 mb-3"><button type="submit" class="btn btn-success w-100">Search</button></div>
+    </div>
+  </form>
+
+  <p class="small text-muted">{{ page.paginator.count }} item{{ page.paginator.count|pluralize }} at the security desk{% if request.GET.q or request.GET.category or request.GET.place %} match your search{% endif %}.</p>
+
+  {% if page.object_list %}
+    <ul class="list-group mb-3">
+      {% for item in page.object_list %}
+        <li class="list-group-item">
+          <strong>{{ item.get_category_display }}</strong> &middot; {{ item.get_place_display }} &middot; {{ item.date_found|date:"j M" }}
+          <br><span class="small">{{ item.description }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    {% include 'includes/pager.html' with extra=query %}
+  {% else %}
+    <p>Nothing found. Try fewer words, or <a href="{% url 'items:report' %}">report your item as lost</a> and we will email you if it comes in.</p>
+  {% endif %}
+
+  <p class="tip">Found your item? Online claiming opens in the next version of the site. Until then, visit the security desk.</p>
+</section>
+{% endblock %}
