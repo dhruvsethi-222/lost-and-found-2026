@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ user.name }},
+
+Thank you for signing up to the campus Lost and Found system.
+
+Please confirm your email address by opening this link:
+
+{{ link }}
+
+The link works for 3 days. If you did not sign up, you can ignore this email.
+
+Lost and Found{% endautoescape %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1 class="h3 mb-3">Log in</h1>
+  <p>For Students and Staff. Use your campus email and password.</p>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% include 'includes/form_errors.html' %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="btn btn-success w-100">Log in</button>
+  </form>
+
+  <p class="mt-3 text-center">New here? <a href="{% url 'accounts:register' %}">Sign up</a></p>
+  <p class="text-center small">Didn't get the verification email? <a href="{% url 'accounts:resend' %}">Send it again</a></p>
+  <p class="text-center small">Security officer? <a href="{% url 'accounts:desk_login' %}">Log in at the Security desk</a></p>
+</section>
+{% endblock %}

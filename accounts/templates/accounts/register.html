@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1 class="h3 mb-3">Welcome</h1>
+
+  <nav aria-label="Account type">
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <a class="nav-link {% if role == 'student' %}active{% endif %}" {% if role == 'student' %}aria-current="page"{% endif %}
+           href="{% url 'accounts:register' %}">I am a Student</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if role == 'staff' %}active{% endif %}" {% if role == 'staff' %}aria-current="page"{% endif %}
+           href="{% url 'accounts:register_staff' %}">I am Staff</a>
+      </li>
+    </ul>
+  </nav>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% include 'includes/form_errors.html' %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <button type="submit" class="btn btn-success w-100">Sign up</button>
+  </form>
+
+  <p class="tip">Tip: a verification email is sent to you. Open it and click the link, then log in.</p>
+  <p class="text-center">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
+</section>
+{% endblock %}

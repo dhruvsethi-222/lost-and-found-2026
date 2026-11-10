@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Check your email{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1 class="h3 mb-3">Check your email</h1>
+  <p>We sent a verification link to <strong>{{ email|default:"your campus email" }}</strong>.</p>
+  <p class="tip">Open the email and click the link. Your account works as soon as the link is clicked. The link lasts 3 days.</p>
+  <a class="btn btn-success" href="{% url 'accounts:login' %}">Go to log in</a>
+  <p class="small mt-3">No email after a few minutes? Check your junk folder, or <a href="{% url 'accounts:resend' %}">send it again</a>.</p>
+</section>
+{% endblock %}

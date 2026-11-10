@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Security desk log in{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1 class="h3 mb-3">Security desk</h1>
+  <p>Log in for security officers (Admin). Admin accounts are created by the system owner.</p>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% include 'includes/form_errors.html' %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="btn btn-success w-100">Log in</button>
+  </form>
+</section>
+{% endblock %}

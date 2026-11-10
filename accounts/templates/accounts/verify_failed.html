@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Link not valid{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1 class="h3 mb-3">This link does not work</h1>
+  <p>The verification link is wrong or older than 3 days.</p>
+  <a class="btn btn-success" href="{% url 'accounts:resend' %}">Send a new link</a>
+</section>
+{% endblock %}
