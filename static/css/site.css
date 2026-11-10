@@ -1,0 +1,49 @@
+/* Our own styles, on top of Bootstrap 5. Colours follow the wireframes. */
+:root {
+  --lf-green: #1e6b3a;
+  --lf-green-dark: #154d29;
+  --lf-green-light: #e8f3ec;
+  --lf-text: #1f2a24;
+}
+
+body { color: var(--lf-text); background: #fbfcfb; }
+
+/* header and footer */
+.site-nav { background: var(--lf-green); }
+.site-nav .nav-link { color: #fff; }
+.site-nav .nav-link:hover, .site-nav .nav-link:focus { color: #d9efe0; }
+.site-footer { background: #eef2ef; padding: 1rem 0; margin-top: 2rem; }
+
+/* buttons in the site's green */
+.btn-success { --bs-btn-bg: var(--lf-green); --bs-btn-border-color: var(--lf-green);
+               --bs-btn-hover-bg: var(--lf-green-dark); --bs-btn-hover-border-color: var(--lf-green-dark);
+               --bs-btn-active-bg: var(--lf-green-dark); }
+.btn-outline-success { --bs-btn-color: var(--lf-green); --bs-btn-border-color: var(--lf-green);
+                       --bs-btn-hover-bg: var(--lf-green); --bs-btn-active-bg: var(--lf-green);
+                       --bs-btn-hover-border-color: var(--lf-green); }
+
+/* page widths */
+.narrow { max-width: 34rem; margin: 0 auto; }
+.medium { max-width: 46rem; margin: 0 auto; }
+
+/* the light green "what happens next" tip, as in the wireframes */
+.tip { background: var(--lf-green-light); border-left: 4px solid var(--lf-green);
+       padding: .75rem 1rem; border-radius: .375rem; margin: 1rem 0; }
+
+/* the Admin-only private details box */
+.private-box { border: 2px dashed var(--lf-green); background: #f6fbf7; padding: 1rem; border-radius: .5rem; }
+.private-box legend { font-size: 1rem; font-weight: 600; float: none; width: auto; padding: 0 .25rem; }
+
+/* message under a field (from Django or forms.js) */
+.field-message { color: #b02a37; font-size: .875rem; margin: .25rem 0 0; }
+.field-message:empty { display: none; }
+
+/* dashboard number cards */
+.stat { background: var(--lf-green-light); border-radius: .5rem; padding: 1rem; height: 100%; }
+.stat .number { font-size: 2rem; font-weight: 700; color: var(--lf-green); line-height: 1; }
+
+/* tables scroll sideways on small screens instead of squashing */
+.table-scroll { overflow-x: auto; }
+
+.thumb { width: 64px; height: 64px; object-fit: cover; border-radius: .25rem; }
+.found-photo { max-width: 100%; max-height: 22rem; border-radius: .5rem; }

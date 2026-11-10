@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Security desk{% endblock %}
+{% block content %}
+<h1 class="h3">Security desk</h1>
+<p>Logged in as: {{ user.name }}, security officer.</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat">
+      <div class="number">{{ in_custody }}</div>
+      <p class="mb-2">Items in custody</p>
+      <a class="btn btn-sm btn-success" href="{% url 'items:desk_found_list' %}">Open</a>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat">
+      <div class="number">{{ recorded_today }}</div>
+      <p class="mb-2">Recorded today</p>
+      <a class="btn btn-sm btn-success" href="{% url 'items:desk_record_found' %}">Record found item</a>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat">
+      <div class="number">{{ lost_this_week }}</div>
+      <p class="mb-2">Lost reports this week</p>
+      <a class="btn btn-sm btn-success" href="{% url 'items:desk_reports' %}?type=lost">Open</a>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat">
+      <div class="number">{{ found_this_week }}</div>
+      <p class="mb-2">Found reports this week</p>
+      <a class="btn btn-sm btn-success" href="{% url 'items:desk_reports' %}?type=found">Open</a>
+    </div>
+  </div>
+</div>
+
+<section aria-labelledby="latest">
+  <h2 id="latest" class="h5">Latest reports from Students and Staff</h2>
+  {% if latest_reports %}
+    <div class="table-scroll">
+      <table class="table table-sm align-middle">
+        <thead><tr><th scope="col">Kind</th><th scope="col">What</th><th scope="col">Where</th>
+                   <th scope="col">Date</th><th scope="col">By</th></tr></thead>
+        <tbody>
+          {% for report in latest_reports %}
+            <tr>
+              <td>{{ report.kind_label }}</td>
+              <td>{{ report.get_category_display }}</td>
+              <td>{{ report.get_place_display }}</td>
+              <td>{{ report.date|date:"j M Y" }}</td>
+              <td>{{ report.user.name }} ({{ report.user.get_role_display }})</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No reports yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

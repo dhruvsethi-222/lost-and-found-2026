@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="medium py-3">
+  <h1 class="h2">Lost something on campus? Found something?</h1>
+  <p class="lead">Report it, search for it and claim it in one place. Every claim is checked by a
+     security officer against private details before an item is handed back.</p>
+
+  {% if user.is_authenticated %}
+    <a class="btn btn-success btn-lg" href="{% url 'core:after_login' %}">Go to my page</a>
+  {% else %}
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-success btn-lg" href="{% url 'accounts:register' %}">Sign up</a>
+      <a class="btn btn-outline-success btn-lg" href="{% url 'accounts:login' %}">Log in</a>
+    </div>
+  {% endif %}
+</section>
+
+<section class="medium py-3" aria-labelledby="how">
+  <h2 id="how" class="h4">How it works</h2>
+  <ol>
+    <li><strong>Report.</strong> Students and Staff report what they lost or found. Found items go to the security desk.</li>
+    <li><strong>Search.</strong> Search the items held at the security desk.</li>
+    <li><strong>Claim.</strong> Say what makes the item yours. The security officer checks your answers against
+        private details only the owner would know.</li>
+    <li><strong>Collect.</strong> Collect the item with your ID. Every hand-back is recorded.</li>
+  </ol>
+  <p class="small text-muted">Security officers: use the <a href="{% url 'accounts:desk_login' %}">Security desk log-in</a>.</p>
+</section>
+{% endblock %}

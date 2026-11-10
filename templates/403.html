@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Access denied{% endblock %}
+{% block content %}
+<section class="narrow text-center py-5">
+  <h1 class="h3">Access denied</h1>
+  <p>This page is not part of your account. Students and Staff use My page; security officers use the Security desk.</p>
+  <a class="btn btn-success" href="{% url 'core:home' %}">Go to the home page</a>
+</section>
+{% endblock %}

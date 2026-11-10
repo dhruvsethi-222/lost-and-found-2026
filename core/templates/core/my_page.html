@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}My page{% endblock %}
+{% block content %}
+<h1 class="h3">My page</h1>
+<p>Hello {{ user.name }} ({{ user.get_role_display }}).</p>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a class="btn btn-success" href="{% url 'items:report' %}">Report an item</a>
+  <a class="btn btn-outline-success" href="{% url 'search:search' %}">Search found items</a>
+</div>
+
+<section aria-labelledby="my-reports">
+  <h2 id="my-reports" class="h5">My reports</h2>
+  {% if reports %}
+    <div class="table-scroll">
+      <table class="table table-sm align-middle">
+        <caption>Items you reported, newest first</caption>
+        <thead>
+          <tr><th scope="col">Kind</th><th scope="col">What</th><th scope="col">Where</th>
+              <th scope="col">Date</th><th scope="col">Reported on</th></tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+            <tr>
+              <td>{{ report.kind_label }}</td>
+              <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span></td>
+              <td>{{ report.get_place_display }}</td>
+              <td>{{ report.date|date:"j M Y" }}</td>
+              <td>{{ report.created_at|date:"j M Y, H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>You have not reported anything yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
