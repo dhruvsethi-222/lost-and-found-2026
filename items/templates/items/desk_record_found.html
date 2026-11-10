@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Record found item{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1 class="h3 mb-3">Record found item</h1>
+
+  {# enctype is needed so the photo file is sent with the form #}
+  <form method="post" enctype="multipart/form-data" data-validate>
+    {% csrf_token %}
+    {% include 'includes/form_errors.html' with form=item_form %}
+    {% for field in item_form %}{% include 'includes/field.html' %}{% endfor %}
+
+    <fieldset class="private-box mb-3">
+      <legend>&#128274; Private details (Admin only)</legend>
+      <p class="small mb-2">Only security officers ever see these. Claims are checked against them. Fill in at least one.</p>
+      {% include 'includes/form_errors.html' with form=detail_form %}
+      {% for field in detail_form %}{% include 'includes/field.html' %}{% endfor %}
+    </fieldset>
+
+    <button type="submit" class="btn btn-success w-100">Save item</button>
+  </form>
+  <p class="tip">Tip: in the next version, saving an item also starts the matching against lost reports.</p>
+</section>
+{% endblock %}

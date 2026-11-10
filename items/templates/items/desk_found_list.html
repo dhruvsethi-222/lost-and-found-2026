@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Found items{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Found items</h1>
+  <a class="btn btn-success" href="{% url 'items:desk_record_found' %}">Record found item</a>
+</div>
+
+<nav aria-label="Filter by status">
+  <ul class="nav nav-pills mb-3">
+    {% for value, label in statuses %}
+      <li class="nav-item">
+        <a class="nav-link {% if status == value %}active{% endif %}" href="?status={{ value }}">{{ label }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+{% if page.object_list %}
+  <div class="table-scroll">
+    <table class="table align-middle">
+      <thead><tr><th scope="col">Photo</th><th scope="col">What</th><th scope="col">Where found</th>
+                 <th scope="col">Date found</th><th scope="col">Recorded by</th><th scope="col"></th></tr></thead>
+      <tbody>
+        {% for item in page.object_list %}
+          <tr>
+            <td><img class="thumb" src="{{ item.photo.url }}" alt="Photo of the {{ item.get_category_display|lower }}"></td>
+            <td>{{ item.get_category_display }}<br><span class="small text-muted">{{ item.description|truncatechars:50 }}</span></td>
+            <td>{{ item.get_place_display }}</td>
+            <td>{{ item.date_found|date:"j M Y" }}</td>
+            <td>{{ item.recorded_by.name }}</td>
+            <td><a class="btn btn-sm btn-outline-success" href="{% url 'items:desk_found_detail' item.pk %}">Open</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'includes/pager.html' with extra="status="|add:status %}
+{% else %}
+  <p>No items with this status.</p>
+{% endif %}
+{% endblock %}

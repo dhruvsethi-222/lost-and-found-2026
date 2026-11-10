@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Found item {{ item.pk }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'items:desk_found_list' %}">&larr; All found items</a></p>
+<h1 class="h3">{{ item.get_category_display }} <span class="badge text-bg-secondary align-middle fs-6">{{ item.get_status_display }}</span></h1>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <img class="found-photo" src="{{ item.photo.url }}" alt="Photo of the {{ item.get_category_display|lower }}">
+  </div>
+  <div class="col-md-7">
+    <dl class="row">
+      <dt class="col-sm-4">Description</dt><dd class="col-sm-8">{{ item.description }}</dd>
+      <dt class="col-sm-4">Where found</dt><dd class="col-sm-8">{{ item.get_place_display }}</dd>
+      <dt class="col-sm-4">Date found</dt><dd class="col-sm-8">{{ item.date_found|date:"j F Y" }}</dd>
+      <dt class="col-sm-4">Recorded by</dt><dd class="col-sm-8">{{ item.recorded_by.name }}, {{ item.created_at|date:"j M Y, H:i" }}</dd>
+    </dl>
+
+    <section class="private-box" aria-labelledby="private">
+      <h2 id="private" class="h6">&#128274; Private details (Admin only)</h2>
+      {% with d=item.verification_detail %}
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Serial number</dt><dd class="col-sm-8">{{ d.serial_no|default:"—" }}</dd>
+          <dt class="col-sm-4">Marks</dt><dd class="col-sm-8">{{ d.marks|default:"—" }}</dd>
+          <dt class="col-sm-4">What is inside it</dt><dd class="col-sm-8">{{ d.contents|default:"—" }}</dd>
+        </dl>
+      {% endwith %}
+    </section>
+  </div>
+</div>
+{% endblock %}

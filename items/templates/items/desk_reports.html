@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Reports received{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Reports from Students and Staff</h1>
+
+<nav aria-label="Filter by kind">
+  <ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link {% if not kind %}active{% endif %}" href="?">All</a></li>
+    <li class="nav-item"><a class="nav-link {% if kind == 'lost' %}active{% endif %}" href="?type=lost">Lost</a></li>
+    <li class="nav-item"><a class="nav-link {% if kind == 'found' %}active{% endif %}" href="?type=found">Found</a></li>
+  </ul>
+</nav>
+
+{% if page.object_list %}
+  <div class="table-scroll">
+    <table class="table table-sm align-middle">
+      <thead><tr><th scope="col">Kind</th><th scope="col">What</th><th scope="col">Where</th>
+                 <th scope="col">Date</th><th scope="col">By</th><th scope="col">Sent</th></tr></thead>
+      <tbody>
+        {% for report in page.object_list %}
+          <tr>
+            <td>{{ report.kind_label }}</td>
+            <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span></td>
+            <td>{{ report.get_place_display }}</td>
+            <td>{{ report.date|date:"j M Y" }}</td>
+            <td>{{ report.user.name }}<br><span class="small text-muted">{{ report.user.email }}</span></td>
+            <td>{{ report.created_at|date:"j M, H:i" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'includes/pager.html' with extra="type="|add:kind %}
+{% else %}
+  <p>No reports yet.</p>
+{% endif %}
+{% endblock %}
