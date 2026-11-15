@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ report.user.name }},
+
+An item at the security desk may match the {{ report.get_category_display|lower }} you reported lost on {{ report.date|date:"j F Y" }}.
+
+Log in and open My page to see it. If it is yours, press Claim and say what makes it yours:
+
+{{ link }}
+
+A security officer checks every claim before an item is handed back.
+
+Lost and Found{% endautoescape %}

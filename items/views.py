@@ -6,6 +6,7 @@ Pages for items.
   /items/desk/found/         Admin: list of found items
   /items/desk/found/<id>/    Admin: one found item, with its private details
   /items/desk/reports/       Admin: reports sent in by Students and Staff
+  /items/desk/matches/       Admin: ranked matches between lost reports and found items
 
 Every view starts with the same two checks: logged in, and the right role
 (explained at the top of core/views.py).
@@ -18,7 +19,10 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import Role
+from matching.matcher import match_found_item, match_lost_report
+from matching.models import Match
 
+from .emails import send_hand_in_confirmation
 from .forms import FoundItemForm, ItemReportForm, VerificationDetailForm
 from .models import FoundItem, ItemReport
 
@@ -37,7 +41,13 @@ def report_item(request):
             report.user = request.user                # it belongs to whoever is logged in
             report.save()                             # ST-S2 / SF-S2
             if report.type == 'lost':
-                messages.success(request, 'Your lost item is reported. We will email you if a match is found.')
+                # SY-I1: the matching algorithm reads the new report straight away
+                matches_found = match_lost_report(report)
+                if matches_found:
+                    messages.success(request, 'Your lost item is reported, and we found a possible match. '
+                                              'See it below.')
+                else:
+                    messages.success(request, 'Your lost item is reported. We will email you if a match is found.')
             else:
                 messages.success(request, 'Thank you. Please take the item to the security desk.')
             return redirect('core:my_page')
@@ -70,7 +80,18 @@ def record_found_item(request):
                 detail = detail_form.save(commit=False)
                 detail.found_item = item
                 detail.save()                         # AD-S2
-            messages.success(request, 'Found item saved with its private details.')
+
+            # SF-O5: a Staff member logged this item first, so confirm the hand-in
+            if item.handed_in_report and item.handed_in_report.user.role == Role.STAFF:
+                send_hand_in_confirmation(item)
+
+            # SY-I1: the matching algorithm compares the new item with the lost reports
+            matches_found = match_found_item(item)
+            if matches_found == 0:
+                messages.success(request, 'Found item saved with its private details. No lost report matches it yet.')
+            else:
+                messages.success(request, f'Found item saved with its private details. Lost reports that match: '
+                                          f'{matches_found}. Each owner has been emailed.')
             return redirect('items:desk_found_detail', pk=item.pk)
     else:
         item_form = FoundItemForm(prefix='item')
@@ -96,12 +117,14 @@ def found_item_list(request):
 
 @login_required(login_url='accounts:desk_login')
 def found_item_detail(request, pk):
-    """Admin: one found item with its private details. No other page shows them (NFR-02)."""
+    """Admin: one found item with its private details, its ranked matches and its claims."""
     if request.user.role != Role.ADMIN:
         raise PermissionDenied
 
     item = get_object_or_404(FoundItem.objects.select_related('recorded_by', 'verification_detail'), pk=pk)
-    return render(request, 'items/desk_found_detail.html', {'item': item})
+    # AD-P3 / AD-O2: the lost reports that match this item, best first
+    matches = Match.objects.filter(found_item=item).select_related('report__user').order_by('rank')
+    return render(request, 'items/desk_found_detail.html', {'item': item, 'matches': matches})
 
 
 @login_required(login_url='accounts:desk_login')
@@ -116,3 +139,16 @@ def report_list(request):
         reports = reports.filter(type=kind)
     page = Paginator(reports, 15).get_page(request.GET.get('page'))
     return render(request, 'items/desk_reports.html', {'page': page, 'kind': kind})
+
+
+@login_required(login_url='accounts:desk_login')
+def match_list(request):
+    """AD-P3 / AD-O2: every ranked match for the items still at the desk, 15 on a page."""
+    if request.user.role != Role.ADMIN:
+        raise PermissionDenied
+
+    matches = (Match.objects.filter(found_item__status=FoundItem.Status.IN_CUSTODY)
+               .select_related('found_item', 'report__user')
+               .order_by('-found_item__created_at', 'rank'))
+    page = Paginator(matches, 15).get_page(request.GET.get('page'))
+    return render(request, 'items/desk_matches.html', {'page': page})

@@ -54,11 +54,13 @@ class FoundItemForm(forms.ModelForm):
 
     class Meta:
         model = FoundItem
-        fields = ['category', 'description', 'place', 'date_found', 'photo']
+        fields = ['category', 'description', 'place', 'date_found', 'photo', 'handed_in_report']
         widgets = {'date_found': DateInput(format='%Y-%m-%d'),
                    'description': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Colour, brand'})}
         labels = {'category': 'What is it?', 'description': 'Describe it', 'place': 'Where was it found?',
-                  'date_found': 'Date found', 'photo': 'Photo'}
+                  'date_found': 'Date found', 'photo': 'Photo',
+                  'handed_in_report': 'Was it reported as found by a Student or Staff member?'}
+        help_texts = {'handed_in_report': 'Optional. Choosing the report marks it as handed in.'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -66,6 +68,10 @@ class FoundItemForm(forms.ModelForm):
         set_first_choice(self.fields['place'], 'Choose a place')
         self.fields['date_found'].widget.attrs['max'] = timezone.localdate().isoformat()
         self.fields['photo'].widget.attrs['accept'] = 'image/*'      # the file picker shows images only
+        # The dropdown lists only found reports that are not linked to an item yet.
+        self.fields['handed_in_report'].queryset = (
+            ItemReport.objects.filter(type='found', received_items__isnull=True).select_related('user'))
+        self.fields['handed_in_report'].empty_label = 'No, it was brought straight to the desk'
         style_form(self)
 
     def clean_photo(self):

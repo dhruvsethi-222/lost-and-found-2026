@@ -11,4 +11,5 @@ urlpatterns = [
     path('desk/found/', views.found_item_list, name='desk_found_list'),
     path('desk/found/<int:pk>/', views.found_item_detail, name='desk_found_detail'),
     path('desk/reports/', views.report_list, name='desk_reports'),
+    path('desk/matches/', views.match_list, name='desk_matches'),
 ]
