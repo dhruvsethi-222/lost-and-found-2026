@@ -30,5 +30,6 @@ class PageTests(TestCase):
         for name in ('items:report', 'search:search', 'core:my_page'):
             self.assertNotContains(self.client.get(reverse(name)), '{#')
         self.client.force_login(make_admin())
-        for name in ('items:desk_record_found', 'items:desk_found_list', 'items:desk_reports', 'core:desk'):
+        for name in ('items:desk_record_found', 'items:desk_found_list', 'items:desk_reports', 'core:desk',
+                     'items:desk_matches', 'claims:desk_list'):
             self.assertNotContains(self.client.get(reverse(name)), '{#')
