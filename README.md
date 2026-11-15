@@ -1,10 +1,15 @@
-# Web-Based Lost and Found System (Dev 1)
+# Web-Based Lost and Found System
 
-Django 5.2 · Python 3.10+ · MySQL on PythonAnywhere (SQLite on a laptop) · Bootstrap 5.3
+Django 5.2 · Python 3.10 to 3.14 · SQLite on a laptop (MySQL ready for the live site) · Bootstrap 5.3
 
-Dev 1 covers: Student and Staff sign-up with email verification, log-in (refused until verified),
-a separate Security desk log-in for the Admin, role checks on every page, reporting lost and found
-items, recording found items with private details (Admin only), and searching found items.
+**Dev 1 (Sprints 1 and 2):** Student and Staff sign-up with email verification, log-in (refused until
+verified), a separate Security desk log-in for the Admin, role checks on every page, reporting lost and
+found items, recording found items with private details (Admin only), and searching found items.
+
+**Dev 2 (Sprints 3 and 4):** the matching algorithm (category, place, date and keywords, scored out of 100
+and ranked), email match alerts, the hand-in confirmation for Staff, claims with their status on My page,
+and the Admin's verification: the claim beside the private details, then approve, reject or ask for
+more details, with a reason. Every decision is emailed and can never be changed.
 
 ## How the code is organised
 
@@ -12,7 +17,9 @@ items, recording found items with private details (Admin only), and searching fo
 |---|---|
 | `accounts` | Sign up, email verification, log in, the Student / Staff / Admin accounts |
 | `items` | Reporting lost and found items, the Admin recording found items with private details |
-| `search` | Searching found items (public details only) |
+| `search` | Searching found items (public details only), with a Claim button on each result |
+| `matching` | The back-end matching of lost reports and found items, and the match alert email. No pages of its own |
+| `claims` | Claiming an item, and the Admin's verification decision |
 | `core` | Home page, My page, Security desk, the shared form helper |
 | `templates`, `static` | The shared page layout, CSS and JavaScript |
 | `config` | Settings and the main list of web addresses |
@@ -48,13 +55,13 @@ coverage run manage.py test && coverage report
 ## Put it live on PythonAnywhere
 
 1. Upload the code (from GitHub: `git clone ...` in a PythonAnywhere Bash console).
-2. `mkvirtualenv lostfound --python=python3.10` then `pip install -r requirements.txt mysqlclient`.
-3. Databases tab: create a MySQL database called `lostfound`, set a password.
+2. `mkvirtualenv lostfound --python=python3.13` then `pip install -r requirements.txt` (add `mysqlclient` on a paid account).
+3. Paid accounts only: on the Databases tab create a MySQL database called `lostfound`. Free accounts keep SQLite.
 4. Create `.env` (copy `.env.example`) and fill in the "live" part.
 5. `python manage.py migrate`, `python manage.py collectstatic`, `python manage.py createofficer ...`.
-6. Web tab: add a new web app (Manual configuration, Python 3.10), set the virtualenv, and in the
+6. Web tab: add a new web app (Manual configuration, Python 3.13), set the virtualenv, and in the
    WSGI file point to this folder and `config.settings`.
 7. Static files: URL `/static/` -> `.../lost_and_found/staticfiles`, URL `/media/` -> `.../lost_and_found/media`.
 8. Turn on "Force HTTPS", press Reload.
 
-The full steps, with explanations, are in the Dev 1 breakdown document.
+The full steps, with explanations, are in the breakdown documents.
