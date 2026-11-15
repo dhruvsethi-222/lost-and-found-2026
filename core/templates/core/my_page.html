@@ -9,6 +9,48 @@
   <a class="btn btn-outline-success" href="{% url 'search:search' %}">Search found items</a>
 </div>
 
+{# ST-O3 / SF-O3: items at the desk that match one of my lost reports #}
+{% for match in alerts %}
+  <div class="match-alert" role="status">
+    <span>&#128276; <strong>A match was found for your lost {{ match.report.get_category_display|lower }}.</strong>
+      <br><span class="small">At the security desk: {{ match.found_item.get_category_display }} &middot;
+      {{ match.found_item.get_place_display }} &middot; {{ match.found_item.date_found|date:"j M" }} &middot;
+      {{ match.found_item.description|truncatechars:60 }}</span></span>
+    <a class="btn btn-sm btn-success" href="{% url 'claims:new' match.found_item.pk %}">Claim</a>
+  </div>
+{% endfor %}
+
+{# ST-O4 / SF-O4: my claims and where each one has reached #}
+<section class="mb-4" aria-labelledby="my-claims">
+  <h2 id="my-claims" class="h5">My claims</h2>
+  {% for claim in claims %}
+    <div class="claim-card">
+      <p class="mb-2"><strong>{{ claim.found_item.get_category_display }}</strong> &middot; {{ claim.found_item.get_place_display }}
+        &middot; claimed {{ claim.created_at|date:"j M Y" }}</p>
+      <ol class="steps" aria-label="Claim progress">
+        <li class="done">Submitted</li>
+        {% if claim.is_open %}
+          <li class="current">{{ claim.get_status_display }}</li>
+          <li>Decision</li>
+        {% else %}
+          <li class="done">Under review</li>
+          <li class="done {% if claim.status != 'approved' %}refused{% endif %}">{{ claim.get_status_display }}</li>
+        {% endif %}
+      </ol>
+      {% if claim.status == 'approved' %}
+        <p class="mb-0 small">Collect it from the security desk, {{ collection_hours }}. Bring your student or staff ID.</p>
+      {% elif claim.status == 'more_evidence' %}
+        <p class="mb-2 small">The security officer asked: {{ claim.reason }}</p>
+        <a class="btn btn-sm btn-success" href="{% url 'claims:add_details' claim.pk %}">Add more details</a>
+      {% elif claim.status == 'rejected' or claim.status == 'closed' %}
+        <p class="mb-0 small">Reason: {{ claim.reason }}</p>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>You have not claimed anything yet. <a href="{% url 'search:search' %}">Search found items</a> to claim one.</p>
+  {% endfor %}
+</section>
+
 <section aria-labelledby="my-reports">
   <h2 id="my-reports" class="h5">My reports</h2>
   {% if reports %}
@@ -17,7 +59,7 @@
         <caption>Items you reported, newest first</caption>
         <thead>
           <tr><th scope="col">Kind</th><th scope="col">What</th><th scope="col">Where</th>
-              <th scope="col">Date</th><th scope="col">Reported on</th></tr>
+              <th scope="col">Date</th><th scope="col">Status</th></tr>
         </thead>
         <tbody>
           {% for report in reports %}
@@ -26,7 +68,7 @@
               <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span></td>
               <td>{{ report.get_place_display }}</td>
               <td>{{ report.date|date:"j M Y" }}</td>
-              <td>{{ report.created_at|date:"j M Y, H:i" }}</td>
+              <td>{{ report.status_label }}</td>
             </tr>
           {% endfor %}
         </tbody>

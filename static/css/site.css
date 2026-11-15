@@ -48,3 +48,25 @@ body { color: var(--lf-text); background: #fbfcfb; }
 
 .thumb { width: 64px; height: 64px; object-fit: cover; border-radius: .25rem; }
 .found-photo { max-width: 100%; max-height: 22rem; border-radius: .5rem; }
+
+/* ---- Dev 2 ---- */
+
+/* match alert on My page, as in the wireframe */
+.match-alert { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+               background: var(--lf-green-light); border: 2px solid var(--lf-green);
+               border-radius: .5rem; padding: .75rem 1rem; margin-bottom: 1rem; }
+
+/* one claim on My page, with its three steps */
+.claim-card { border: 1px solid #cfe0d4; border-radius: .5rem; padding: .75rem 1rem; margin-bottom: .75rem; background: #fff; }
+.steps { list-style: none; display: flex; gap: .5rem; padding: 0; margin: 0 0 .5rem; flex-wrap: wrap; }
+.steps li { flex: 1 1 6rem; text-align: center; font-size: .875rem; padding: .35rem .5rem;
+            border-radius: 2rem; border: 2px solid #cfd8d2; color: #5b6b61; background: #fff; }
+.steps li.done { background: var(--lf-green); border-color: var(--lf-green); color: #fff; }
+.steps li.current { border-color: var(--lf-green); color: var(--lf-green); font-weight: 600; }
+.steps li.refused { background: #b02a37; border-color: #b02a37; }
+
+/* the two boxes the Admin compares when verifying a claim */
+.compare-box { border: 1px solid #cfe0d4; border-radius: .5rem; padding: 1rem; height: 100%; background: #fff; }
+.compare-box.private-box { border: 2px dashed var(--lf-green); background: #f6fbf7; }
+.keep-lines { white-space: pre-line; }       /* keeps the line breaks the claimant typed */
+.ms-0.medium { margin-left: 0; }
