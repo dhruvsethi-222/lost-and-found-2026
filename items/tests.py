@@ -35,6 +35,14 @@ class ReportItemTests(TestCase):
         self.client.post(reverse('items:report'), report_data(type='found', category='umbrella'))
         self.assertEqual(ItemReport.objects.get().kind_label, 'Found')
 
+    def test_SF_P3_staff_reports_a_lost_item_and_sees_it_on_my_page(self):
+        staff = make_staff()
+        self.client.force_login(staff)
+        self.client.post(reverse('items:report'), report_data(category='laptop', description='Grey laptop'))
+        report = ItemReport.objects.get()                                     # SF-S2
+        self.assertEqual((report.user, report.type), (staff, 'lost'))
+        self.assertContains(self.client.get(reverse('core:my_page')), 'Grey laptop')     # SF-R1
+
     def test_SF_P4_staff_logs_an_office_found_item(self):
         self.client.force_login(make_staff())
         page = self.client.get(reverse('items:report'))

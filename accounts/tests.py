@@ -44,7 +44,9 @@ class RegistrationTests(TestCase):
     def test_SF_P1_staff_registers_with_staff_id_and_department(self):
         self.client.post(reverse('accounts:register_staff'), STAFF_FORM)
         user = User.objects.get(email='otieno@campus.ac.ke')
-        self.assertEqual((user.role, user.staff_no, user.department), (Role.STAFF, 'S1043', 'Computing'))
+        self.assertEqual((user.role, user.staff_no, user.department), (Role.STAFF, 'S1043', 'Computing'))        # SF-S1
+        self.assertEqual(len(mail.outbox), 1)                          # SF-O1 / EM-P1
+        self.assertEqual(mail.outbox[0].to, ['otieno@campus.ac.ke'])
 
     def test_NFR01_only_campus_emails_can_register(self):
         for email in ('jane@gmail.com', 'jane@campus.ac.ke'):     # outside, and a staff address on the student form
