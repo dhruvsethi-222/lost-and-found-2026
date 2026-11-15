@@ -1,4 +1,6 @@
-"""Tests for searching found items, including the privacy rule (NFR-02)."""
+"""Tests for searching found items, including the privacy rule (NFR-02) and speed (NFR-05)."""
+import time
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -55,3 +57,19 @@ class SearchTests(TestCase):
     def test_logged_out_visitors_must_log_in_to_search(self):
         self.client.logout()
         self.assertEqual(self.search().status_code, 302)
+
+
+class SearchSpeedTests(TestCase):
+    def test_NFR05_search_with_1000_items_answers_in_under_3_seconds(self):
+        officer = make_admin()
+        FoundItem.objects.bulk_create([
+            FoundItem(recorded_by=officer, category='wallet', description=f'Black wallet number {number}',
+                      place='library', date_found=timezone.localdate(), photo='found_items/x.png')
+            for number in range(1000)])
+        self.client.force_login(make_student())
+        start = time.perf_counter()
+        response = self.client.get(reverse('search:search'), {'q': 'black wallet', 'place': 'library'})
+        seconds = time.perf_counter() - start
+        self.assertEqual(response.context['page'].paginator.count, 1000)
+        self.assertEqual(len(response.context['page'].object_list), 10)      # one page of 10
+        self.assertLess(seconds, 3)

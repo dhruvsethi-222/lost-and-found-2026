@@ -1,9 +1,10 @@
-// Friendly messages under each field before a form is sent - the same idea as the
-// Week 8 delivery form. It only helps people; the server (Django) checks everything
-// again, because anyone can switch JavaScript off.
+// Friendly messages under each field before a form is sent.
+// It only helps people: the server (Django) checks everything again, because
+// anyone can switch JavaScript off.
 //
 // Any <form data-validate> on the site uses it.
 
+// Turns the browser's own check of one field into a plain message.
 function explain(field) {
   const v = field.validity;
   if (v.valueMissing) return field.type === 'radio' ? 'Please choose one.' : 'Please fill in this field.';
