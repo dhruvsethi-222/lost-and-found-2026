@@ -1,3 +1,4 @@
+"""The /system-admin/ site (system owner only): look at item records."""
 from django.contrib import admin
 
 from .models import FoundItem, ItemReport, VerificationDetail

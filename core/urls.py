@@ -1,3 +1,4 @@
+"""Web addresses for the shared pages."""
 from django.urls import path
 
 from . import views

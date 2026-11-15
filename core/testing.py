@@ -4,25 +4,25 @@ import io
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
-from accounts.models import Admin, Staff, Student
+from accounts.models import Role, User
 
 PASSWORD = 'Campus-Pass-2026'
 
 
 def make_student(email='jane@students.campus.ac.ke', verified=True, **extra):
     extra.setdefault('admission_no', '227034')
-    return Student.objects.create_user(email, PASSWORD, name='Jane Wanjiru', is_verified=verified, **extra)
+    return User.objects.create_user(email, PASSWORD, role=Role.STUDENT, name='Jane Wanjiru', is_verified=verified, **extra)
 
 
 def make_staff(email='otieno@campus.ac.ke', verified=True, **extra):
     extra.setdefault('staff_no', 'S1043')
-    return Staff.objects.create_user(email, PASSWORD, name='Peter Otieno', department='Computing',
-                                     is_verified=verified, **extra)
+    return User.objects.create_user(email, PASSWORD, role=Role.STAFF, name='Peter Otieno',
+                                    department='Computing', is_verified=verified, **extra)
 
 
 def make_admin(email='achieng@campus.ac.ke', **extra):
     extra.setdefault('officer_no', 'SO-001')
-    return Admin.objects.create_user(email, PASSWORD, name='Grace Achieng', is_verified=True, **extra)
+    return User.objects.create_user(email, PASSWORD, role=Role.ADMIN, name='Grace Achieng', is_verified=True, **extra)
 
 
 def photo(name='wallet.png'):

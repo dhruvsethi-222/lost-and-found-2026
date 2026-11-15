@@ -5,43 +5,51 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from accounts.models import Role
-from core.forms import BootstrapFormMixin
+from core.forms import style_form
 
 from .models import FoundItem, ItemReport, VerificationDetail
 
 
 class DateInput(forms.DateInput):
-    input_type = 'date'          # the browser shows a calendar
+    """A date box that makes the browser show a calendar."""
+    input_type = 'date'
 
 
-def first_choice(field, text):
-    """Replaces Django's '---------' with 'Choose a ...', like the course forms."""
-    field.choices = [('', text)] + [c for c in field.choices if c[0] != '']
+def set_first_choice(field, text):
+    """Replaces Django's '---------' at the top of a dropdown with e.g. 'Choose a category'."""
+    real_choices = [choice for choice in field.choices if choice[0] != '']
+    field.choices = [('', text)] + real_choices
 
 
-class ItemReportForm(BootstrapFormMixin, forms.ModelForm):
-    """Report an item (ST-I2, SF-I2). The two tab labels depend on who is reporting."""
+class ItemReportForm(forms.ModelForm):
+    """Report an item (ST-I2, SF-I2): type, category, description, date and place."""
 
     class Meta:
         model = ItemReport
         fields = ['type', 'category', 'description', 'date', 'place']
-        widgets = {'type': forms.RadioSelect, 'date': DateInput(format='%Y-%m-%d'),
+        widgets = {'type': forms.RadioSelect,
+                   'date': DateInput(format='%Y-%m-%d'),
                    'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Colour, brand, marks'})}
-        labels = {'type': 'What happened?', 'category': 'What is it?', 'description': 'Describe it',
-                  'place': 'Where?'}
+        labels = {'type': 'What happened?', 'category': 'What is it?',
+                  'description': 'Describe it', 'place': 'Where?'}
 
     def __init__(self, *args, role=Role.STUDENT, **kwargs):
         super().__init__(*args, **kwargs)
-        found_label = 'Found in my office' if role == Role.STAFF else 'I found it'
-        self.fields['type'].choices = [('lost', 'I lost it'), ('found', found_label)]
-        first_choice(self.fields['category'], 'Choose a category')
-        first_choice(self.fields['place'], 'Choose a place')
+        # Staff see "Found in my office" (SF-P4); Students see "I found it" (ST-P4).
         if role == Role.STAFF:
+            found_label = 'Found in my office'
             self.fields['place'].label = 'Office / hall or place'
-        self.fields['date'].widget.attrs['max'] = timezone.localdate().isoformat()   # no future dates
+        else:
+            found_label = 'I found it'
+        self.fields['type'].choices = [('lost', 'I lost it'), ('found', found_label)]
+        set_first_choice(self.fields['category'], 'Choose a category')
+        set_first_choice(self.fields['place'], 'Choose a place')
+        # The calendar does not offer dates after today (NFR-03).
+        self.fields['date'].widget.attrs['max'] = timezone.localdate().isoformat()
+        style_form(self)
 
 
-class FoundItemForm(BootstrapFormMixin, forms.ModelForm):
+class FoundItemForm(forms.ModelForm):
     """The public part of a found item, entered by the Admin (AD-I2)."""
 
     class Meta:
@@ -54,28 +62,39 @@ class FoundItemForm(BootstrapFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        first_choice(self.fields['category'], 'Choose a category')
-        first_choice(self.fields['place'], 'Choose a place')
+        set_first_choice(self.fields['category'], 'Choose a category')
+        set_first_choice(self.fields['place'], 'Choose a place')
         self.fields['date_found'].widget.attrs['max'] = timezone.localdate().isoformat()
-        self.fields['photo'].widget.attrs['accept'] = 'image/*'
+        self.fields['photo'].widget.attrs['accept'] = 'image/*'      # the file picker shows images only
+        style_form(self)
 
     def clean_photo(self):
+        """Refuses photos that are too big. Django has already checked it is a real image."""
         photo = self.cleaned_data['photo']
         if photo and photo.size > settings.MAX_PHOTO_MB * 1024 * 1024:
             raise ValidationError(f'The photo is too big. Use one under {settings.MAX_PHOTO_MB} MB.')
         return photo
 
 
-class VerificationDetailForm(BootstrapFormMixin, forms.ModelForm):
-    """The private part, entered by the Admin (AD-I3). At least one detail is needed to check claims later."""
+class VerificationDetailForm(forms.ModelForm):
+    """The private part, entered by the Admin (AD-I3): serial number, marks, contents."""
 
     class Meta:
         model = VerificationDetail
         fields = ['serial_no', 'marks', 'contents']
-        widgets = {'marks': forms.Textarea(attrs={'rows': 2}), 'contents': forms.Textarea(attrs={'rows': 2})}
+        widgets = {'marks': forms.Textarea(attrs={'rows': 2}),
+                   'contents': forms.Textarea(attrs={'rows': 2})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        style_form(self)
 
     def clean(self):
+        """At least one private detail is needed, or there is nothing to check a claim against."""
         cleaned = super().clean()
-        if not any((cleaned.get(f) or '').strip() for f in ('serial_no', 'marks', 'contents')):
+        serial_no = (cleaned.get('serial_no') or '').strip()
+        marks = (cleaned.get('marks') or '').strip()
+        contents = (cleaned.get('contents') or '').strip()
+        if not serial_no and not marks and not contents:
             raise ValidationError('Enter at least one private detail. Claims are checked against these.')
         return cleaned

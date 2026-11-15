@@ -1,3 +1,4 @@
+"""Web addresses for items, all starting with /items/."""
 from django.urls import path
 
 from . import views

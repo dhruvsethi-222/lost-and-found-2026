@@ -5,12 +5,13 @@ so it matches the test register (TC-ST-P1).  Run:  python manage.py test
 import re
 
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
-from accounts.models import Admin, Role, Student, User
+from accounts.models import Admin, Role, Staff, Student, User
 from core.testing import PASSWORD, make_admin, make_staff, make_student
 
 STUDENT_FORM = {'name': 'Jane Wanjiru', 'email': 'jane@students.campus.ac.ke', 'admission_no': '227034',
@@ -85,6 +86,15 @@ class VerificationTests(TestCase):
         self.assertTrue(User.objects.get().is_verified)
         response = self.client.get(link, follow=True)                 # second click: already verified
         self.assertContains(response, 'already verified')
+
+    def test_the_link_stops_working_after_the_first_log_in(self):
+        self.client.post(reverse('accounts:register'), STUDENT_FORM)
+        link = link_in(mail.outbox[0])
+        self.client.get(link)                                          # verify
+        self.client.post(reverse('accounts:login'), {'username': STUDENT_FORM['email'], 'password': PASSWORD})
+        user = User.objects.get()
+        token = link.rstrip('/').split('/')[-1]
+        self.assertFalse(default_token_generator.check_token(user, token))
 
     def test_a_made_up_link_is_refused(self):
         make_student(verified=False)
@@ -169,9 +179,10 @@ class RoleAccessTests(TestCase):
 
 
 class ModelTests(TestCase):
-    def test_proxy_classes_see_only_their_role(self):
+    def test_NFR08_student_staff_and_admin_classes_list_only_their_own_role(self):
         make_student(); make_staff(); make_admin()
         self.assertEqual(list(Student.objects.values_list('role', flat=True)), ['student'])
+        self.assertEqual(list(Staff.objects.values_list('role', flat=True)), ['staff'])
         self.assertEqual(list(Admin.objects.values_list('role', flat=True)), ['admin'])
         self.assertEqual(User.objects.count(), 3)
 

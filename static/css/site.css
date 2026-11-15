@@ -37,6 +37,7 @@ body { color: var(--lf-text); background: #fbfcfb; }
 /* message under a field (from Django or forms.js) */
 .field-message { color: #b02a37; font-size: .875rem; margin: .25rem 0 0; }
 .field-message:empty { display: none; }
+.has-error .form-control, .has-error .form-select { border-color: #b02a37; }   /* red outline on a mistake */
 
 /* dashboard number cards */
 .stat { background: var(--lf-green-light); border-radius: .5rem; padding: 1rem; height: 100%; }

@@ -52,8 +52,8 @@ class ItemReport(models.Model):
 
     @property
     def kind_label(self):
-        """How the report is named on screen: Lost, Found, or Office item for Staff."""
-        if self.type == self.Type.FOUND and self.user.role == Role.STAFF:
+        """How the report is named on screen: Lost, Found, or Office item for Staff (SF-P4)."""
+        if self.type == 'found' and self.user.role == Role.STAFF:
             return 'Office item'
         return self.get_type_display()
 

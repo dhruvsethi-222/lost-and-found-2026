@@ -6,6 +6,23 @@ Dev 1 covers: Student and Staff sign-up with email verification, log-in (refused
 a separate Security desk log-in for the Admin, role checks on every page, reporting lost and found
 items, recording found items with private details (Admin only), and searching found items.
 
+## How the code is organised
+
+| Folder | What it does |
+|---|---|
+| `accounts` | Sign up, email verification, log in, the Student / Staff / Admin accounts |
+| `items` | Reporting lost and found items, the Admin recording found items with private details |
+| `search` | Searching found items (public details only) |
+| `core` | Home page, My page, Security desk, the shared form helper |
+| `templates`, `static` | The shared page layout, CSS and JavaScript |
+| `config` | Settings and the main list of web addresses |
+
+Every page works the same way: `urls.py` (the address) -> `views.py` (the function that
+answers) -> `forms.py` (checks what was typed) -> `templates` (the HTML page).
+
+Every protected view starts the same way: `@login_required`, then a plain check of
+`request.user.role`. A wrong role gets the "Access denied" page.
+
 ## Run it on your laptop
 
 ```bash

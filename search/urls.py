@@ -1,3 +1,4 @@
+"""Web address for search: /search/."""
 from django.urls import path
 
 from . import views

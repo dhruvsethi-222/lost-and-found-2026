@@ -1,17 +1,23 @@
 """
-Shared pages:
-  /          home page
-  /start/    after logging in, sends each role to its own page
+Shared pages.
+
+  /          home page (everyone)
+  /start/    after logging in: sends each kind of account to its own page
   /my/       My page (Students and Staff)
-  /desk/     Security desk dashboard (Admin)
+  /desk/     Security desk (Admin)
+
+How pages are protected (NFR-01), used the same way in every views.py:
+  1. @login_required sends visitors who are not logged in to the log-in page.
+  2. The first lines of the view check the role. A wrong role raises
+     PermissionDenied, which shows the "Access denied" page (templates/403.html).
 """
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from accounts.decorators import admin_only, student_or_staff
 from accounts.models import Role
 from items.models import FoundItem, ItemReport
 
@@ -22,20 +28,28 @@ def home(request):
 
 @login_required
 def after_login(request):
+    """Where to go straight after logging in."""
     if request.user.role == Role.ADMIN:
         return redirect('core:desk')
     return redirect('core:my_page')
 
 
-@student_or_staff
+@login_required
 def my_page(request):
-    reports = request.user.item_reports.all()          # only this person's own reports
+    """ST-R1 / SF-R1: a Student or Staff member sees only their own reports."""
+    if request.user.role not in (Role.STUDENT, Role.STAFF):
+        raise PermissionDenied
+
+    reports = ItemReport.objects.filter(user=request.user)
     return render(request, 'core/my_page.html', {'reports': reports})
 
 
-@admin_only
+@login_required(login_url='accounts:desk_login')
 def desk(request):
-    """AD-O1 (dashboard). Claims, matches and expired items are added in Dev 2 and Dev 3."""
+    """The Admin's dashboard: a few counts and the latest reports."""
+    if request.user.role != Role.ADMIN:
+        raise PermissionDenied
+
     today = timezone.localdate()
     week_ago = timezone.now() - timedelta(days=7)
     context = {
