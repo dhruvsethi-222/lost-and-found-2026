@@ -22,7 +22,7 @@ class PageTests(TestCase):
         self.assertEqual(self.client.get('/no-such-page/').status_code, 404)
 
     def test_template_notes_never_show_on_a_page(self):
-        """A {# note #} in a template must stay on one line, or it shows up on the page."""
+        # A {# note #} in a template must stay on one line, or it shows up on the page.
         for name in ('accounts:register', 'accounts:register_staff', 'accounts:login',
                      'accounts:desk_login', 'accounts:resend'):
             self.assertNotContains(self.client.get(reverse(name)), '{#')
