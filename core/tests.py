@@ -20,3 +20,15 @@ class PageTests(TestCase):
 
     def test_unknown_page_gives_404(self):
         self.assertEqual(self.client.get('/no-such-page/').status_code, 404)
+
+    def test_template_notes_never_show_on_a_page(self):
+        """A {# note #} in a template must stay on one line, or it shows up on the page."""
+        for name in ('accounts:register', 'accounts:register_staff', 'accounts:login',
+                     'accounts:desk_login', 'accounts:resend'):
+            self.assertNotContains(self.client.get(reverse(name)), '{#')
+        self.client.force_login(make_student())
+        for name in ('items:report', 'search:search', 'core:my_page'):
+            self.assertNotContains(self.client.get(reverse(name)), '{#')
+        self.client.force_login(make_admin())
+        for name in ('items:desk_record_found', 'items:desk_found_list', 'items:desk_reports', 'core:desk'):
+            self.assertNotContains(self.client.get(reverse(name)), '{#')
