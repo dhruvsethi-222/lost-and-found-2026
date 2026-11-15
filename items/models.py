@@ -48,7 +48,9 @@ class ItemReport(models.Model):
         indexes = [models.Index(fields=['category', 'date']), models.Index(fields=['place'])]   # NFR-05
 
     def __str__(self):
-        return f'{self.get_type_display()}: {self.get_category_display()} ({self.get_place_display()})'
+        # Also the text shown in the "handed in by" dropdown on the Record found item page.
+        return (f'{self.kind_label}: {self.get_category_display()}, {self.get_place_display()}, '
+                f'{self.date:%d %b %Y}, reported by {self.user.name}')
 
     @property
     def kind_label(self):
@@ -56,6 +58,17 @@ class ItemReport(models.Model):
         if self.type == 'found' and self.user.role == Role.STAFF:
             return 'Office item'
         return self.get_type_display()
+
+    @property
+    def status_label(self):
+        """What My page shows beside a report (ST-R1, SF-R1)."""
+        if self.type == 'lost':
+            if self.matches.exists():                 # rows in the match table for this report
+                return 'Matched'
+            return 'No match yet'
+        if self.received_items.exists():              # the Admin recorded the item at the desk
+            return 'Handed in'
+        return 'Not yet at the security desk'
 
 
 class FoundItem(models.Model):
@@ -75,6 +88,9 @@ class FoundItem(models.Model):
     date_found = models.DateField(validators=[not_in_future])
     photo = models.ImageField(upload_to=photo_path)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.IN_CUSTODY)
+    # The found report this item came from, if a Student or Staff member reported it first (SF-O5).
+    handed_in_report = models.ForeignKey(ItemReport, on_delete=models.PROTECT, null=True, blank=True,
+                                         related_name='received_items', limit_choices_to={'type': 'found'})
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

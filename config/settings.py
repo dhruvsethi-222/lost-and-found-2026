@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'accounts',   # user authentication and role management
     'items',      # reporting lost and found items, Admin intake of found items
     'search',     # searching found items
+    'matching',   # back-end matching of lost reports and found items (no pages of its own)
+    'claims',     # claiming an item and the Admin's verification decision
     'core',       # home page, My page, Security desk dashboard, shared templates
 ]
 
@@ -123,6 +125,16 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 # The email verification link works for 3 days.
 PASSWORD_RESET_TIMEOUT = 3 * 24 * 60 * 60
+
+# ---------------------------------------------------------------- matching and claims
+# A lost report and a found item are saved as a match from this score (out of 100).
+MATCH_MINIMUM_SCORE = 50
+
+# The address of the site, used for links inside emails.
+SITE_URL = env('SITE_URL', 'http://127.0.0.1:8000')
+
+# Shown to a claimant when a claim is approved.
+DESK_COLLECTION_HOURS = env('DESK_COLLECTION_HOURS', 'Monday to Friday, 8:00 am to 5:00 pm')
 
 # Only campus email addresses can register.
 STUDENT_EMAIL_DOMAINS = env_list('STUDENT_EMAIL_DOMAINS', 'students.campus.ac.ke')
