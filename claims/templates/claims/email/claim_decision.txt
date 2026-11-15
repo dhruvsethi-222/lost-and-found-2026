@@ -11,7 +11,7 @@ Log in, open My page and add the details the officer asked for:
 {{ link }}
 {% elif claim.status == 'rejected' %}
 If you think this is a mistake, visit the security desk.
-{% endif %}
+{% endif %}{% if claim.status != 'more_evidence' %}
 You can see your claim at any time on My page: {{ link }}
-
+{% endif %}
 Lost and Found{% endautoescape %}
