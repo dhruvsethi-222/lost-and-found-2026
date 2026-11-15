@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Add more details{% endblock %}
+{% block content %}
+<section class="narrow">
+  <p><a href="{% url 'core:my_page' %}">&larr; Back to My page</a></p>
+  <h1 class="h3 mb-3">Add more details to your claim</h1>
+
+  <p><strong>{{ claim.found_item.get_category_display }}</strong> &middot; {{ claim.found_item.get_place_display }}</p>
+  <div class="tip"><strong>The security officer asked:</strong> {{ claim.reason }}</div>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <button type="submit" class="btn btn-success w-100">Send details</button>
+  </form>
+</section>
+{% endblock %}

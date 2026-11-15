@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Verify a claim{% endblock %}
+{% block content %}
+<p><a href="{% url 'claims:desk_list' %}">&larr; All claims</a></p>
+<h1 class="h3">Claim: {{ item.get_category_display }}
+  <span class="badge text-bg-secondary align-middle fs-6">{{ claim.get_status_display }}</span></h1>
+<p class="mb-3">Claimed by <strong>{{ claim.user.name }}</strong> ({{ claim.user.get_role_display }},
+  {% if claim.user.admission_no %}admission no. {{ claim.user.admission_no }}{% else %}staff ID {{ claim.user.staff_no }}{% endif %})
+  on {{ claim.created_at|date:"j M Y, H:i" }}.</p>
+
+{# AD-O3: what the claimant said, beside the private details recorded for the item #}
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <section class="compare-box" aria-labelledby="said">
+      <h2 id="said" class="h6">Claimant said</h2>
+      <p class="mb-0 keep-lines">{{ claim.answers }}</p>
+    </section>
+  </div>
+  <div class="col-md-6">
+    <section class="compare-box private-box" aria-labelledby="recorded">
+      <h2 id="recorded" class="h6">&#128274; We recorded (Admin only)</h2>
+      {% with d=item.verification_detail %}
+        <dl class="mb-0">
+          <dt>Serial number</dt><dd>{{ d.serial_no|default:"—" }}</dd>
+          <dt>Marks</dt><dd>{{ d.marks|default:"—" }}</dd>
+          <dt>What is inside it</dt><dd class="mb-0">{{ d.contents|default:"—" }}</dd>
+        </dl>
+      {% endwith %}
+    </section>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <img class="found-photo" src="{{ item.photo.url }}" alt="Photo of the {{ item.get_category_display|lower }}">
+  </div>
+  <div class="col-md-8">
+    <dl class="row mb-2">
+      <dt class="col-sm-4">The item</dt><dd class="col-sm-8">{{ item.description }}</dd>
+      <dt class="col-sm-4">Where found</dt><dd class="col-sm-8">{{ item.get_place_display }}, {{ item.date_found|date:"j M Y" }}</dd>
+      <dt class="col-sm-4">Item status</dt><dd class="col-sm-8">{{ item.get_status_display }}</dd>
+    </dl>
+    {# AD-O2: the ranked match helps the decision #}
+    {% if claimant_match %}
+      <p class="tip mb-2">This claimant reported a lost {{ claimant_match.report.get_category_display|lower }}
+        ({{ claimant_match.report.get_place_display }}, {{ claimant_match.report.date|date:"j M Y" }}:
+        "{{ claimant_match.report.description|truncatechars:80 }}").
+        It matches this item: score {{ claimant_match.score|floatformat:0 }} out of 100, rank {{ claimant_match.rank }}.</p>
+    {% else %}
+      <p class="small text-muted mb-2">This claimant has no lost report that matches this item.</p>
+    {% endif %}
+    {% if other_open_claims %}
+      <p class="small mb-0">Other open claims for this item: {{ other_open_claims }}. Approving this one closes them.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if claim.is_open %}
+  <form method="post" data-validate class="medium ms-0">
+    {% csrf_token %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    {# The three buttons send the same form; "decision" says which one was pressed. #}
+    <div class="d-flex flex-wrap gap-2">
+      <button type="submit" name="decision" value="approve" class="btn btn-success">Approve</button>
+      <button type="submit" name="decision" value="reject" class="btn btn-outline-success">Reject</button>
+      <button type="submit" name="decision" value="more" class="btn btn-outline-success">Ask more</button>
+    </div>
+  </form>
+  <p class="tip medium ms-0">Tip: the decision is emailed to the claimant. An approval or rejection cannot be changed afterwards.</p>
+{% else %}
+  <section class="tip medium ms-0" aria-labelledby="decision">
+    <h2 id="decision" class="h6">Decision: {{ claim.get_status_display }}</h2>
+    <p class="mb-1">Reason: {{ claim.reason }}</p>
+    <p class="mb-0 small">By {{ claim.decided_by.name }} on {{ claim.decided_at|date:"j M Y, H:i" }}. This record cannot be changed.</p>
+  </section>
+{% endif %}
+{% endblock %}

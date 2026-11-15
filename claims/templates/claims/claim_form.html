@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Claim an item{% endblock %}
+{% block content %}
+<section class="narrow">
+  <p><a href="{% url 'search:search' %}">&larr; Back to search</a></p>
+  <h1 class="h3 mb-3">Claim this item</h1>
+
+  {# Only the public details of the item are shown here (NFR-02). #}
+  <div class="tip">
+    <strong>{{ item.get_category_display }}</strong> &middot; {{ item.get_place_display }} &middot; {{ item.date_found|date:"j M Y" }}
+    <br><span class="small">{{ item.description }}</span>
+  </div>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% include 'includes/form_errors.html' %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <button type="submit" class="btn btn-success w-100">Submit claim</button>
+  </form>
+
+  <p class="tip">Tip: a security officer compares your answer with private details recorded for the item. You get an email with the decision.</p>
+</section>
+{% endblock %}

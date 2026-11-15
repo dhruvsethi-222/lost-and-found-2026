@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Claims{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Claims</h1>
+
+<nav aria-label="Filter by status">
+  <ul class="nav nav-pills mb-3">
+    {% for value, label in statuses %}
+      <li class="nav-item">
+        <a class="nav-link {% if status == value %}active{% endif %}" href="?status={{ value }}">{{ label }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
+
+{% if page.object_list %}
+  <div class="table-scroll">
+    <table class="table align-middle">
+      <thead><tr><th scope="col">Item</th><th scope="col">Claimed by</th><th scope="col">Sent</th>
+                 <th scope="col">Status</th><th scope="col"></th></tr></thead>
+      <tbody>
+        {% for claim in page.object_list %}
+          <tr>
+            <td>{{ claim.found_item.get_category_display }}<br><span class="small text-muted">{{ claim.found_item.description|truncatechars:50 }}</span></td>
+            <td>{{ claim.user.name }}<br><span class="small text-muted">{{ claim.user.get_role_display }}</span></td>
+            <td>{{ claim.created_at|date:"j M Y, H:i" }}</td>
+            <td>{{ claim.get_status_display }}</td>
+            <td><a class="btn btn-sm btn-outline-success" href="{% url 'claims:desk_verify' claim.pk %}">Open</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'includes/pager.html' with extra="status="|add:status %}
+{% else %}
+  <p>No claims with this status.</p>
+{% endif %}
+{% endblock %}

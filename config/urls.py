@@ -15,6 +15,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),    # register, verify, log in, log out
     path('items/', include('items.urls')),          # report items, record found items
     path('search/', include('search.urls')),        # search found items
+    path('claims/', include('claims.urls')),        # claim an item, verify a claim
     path('system-admin/', admin.site.urls),         # Django's built-in admin, for the system owner only
 ]
 

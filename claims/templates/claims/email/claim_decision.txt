@@ -1,0 +1,17 @@
+{% autoescape off %}Hello {{ claim.user.name }},
+
+Your claim for the {{ claim.found_item.get_category_display|lower }} found at {{ claim.found_item.get_place_display }} has been checked by the security desk.
+
+Decision: {{ claim.get_status_display }}
+Reason: {{ claim.reason }}
+{% if claim.status == 'approved' %}
+Collect the item from the security desk, {{ collection_hours }}. Bring your student or staff ID.
+{% elif claim.status == 'more_evidence' %}
+Log in, open My page and add the details the officer asked for:
+{{ link }}
+{% elif claim.status == 'rejected' %}
+If you think this is a mistake, visit the security desk.
+{% endif %}
+You can see your claim at any time on My page: {{ link }}
+
+Lost and Found{% endautoescape %}
