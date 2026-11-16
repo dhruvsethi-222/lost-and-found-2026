@@ -11,6 +11,13 @@ and ranked), email match alerts, the hand-in confirmation for Staff, claims with
 and the Admin's verification: the claim beside the private details, then approve, reject or ask for
 more details, with a reason. Every decision is emailed and can never be changed.
 
+## Documents
+
+| Development | Document | What it is |
+|---|---|---|
+| Dev 1 | [Dev1_Breakdown.docx](docs/Dev1_Breakdown.docx) | How Dev 1 was built and how every part of the code works |
+| Dev 1 | [Dev1_Requirements_Check.docx](docs/Dev1_Requirements_Check.docx) | Dev 1 checked against the functional requirements, non-functional requirements and objectives |
+
 ## How the code is organised
 
 | Folder | What it does |
