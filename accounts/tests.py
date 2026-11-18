@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Admin, Role, Staff, Student, User
@@ -197,3 +197,66 @@ class ModelTests(TestCase):
     def test_superuser_is_an_admin(self):
         owner = User.objects.create_superuser('owner@campus.ac.ke', PASSWORD, name='Owner')
         self.assertTrue(owner.is_admin_officer and owner.is_staff and owner.is_superuser)
+
+
+class ManageAccountsTests(TestCase):
+    """AD-P10: the Admin manages Student and Staff accounts."""
+
+    def setUp(self):
+        self.officer = make_admin()
+        self.student = make_student()
+        self.staff = make_staff()
+        self.client.force_login(self.officer)
+
+    def test_AD_P10_admin_sees_and_searches_student_and_staff_accounts(self):
+        page = self.client.get(reverse('accounts:desk_accounts'))
+        self.assertContains(page, 'Jane Wanjiru')
+        self.assertContains(page, 'Peter Otieno')
+        self.assertNotContains(page, 'achieng@campus.ac.ke')          # Admin accounts are not listed
+        found = self.client.get(reverse('accounts:desk_accounts'), {'q': '227034'}).context['page'].object_list
+        self.assertEqual(list(found), [self.student])
+        staff_only = self.client.get(reverse('accounts:desk_accounts'), {'role': 'staff'}).context['page'].object_list
+        self.assertEqual(list(staff_only), [self.staff])
+
+    def test_AD_P10_a_switched_off_account_cannot_log_in_and_can_be_switched_on_again(self):
+        self.client.post(reverse('accounts:desk_account_switch', args=[self.student.pk]))
+        self.student.refresh_from_db()
+        self.assertFalse(self.student.is_active)
+        self.assertTrue(User.objects.filter(pk=self.student.pk).exists())      # never deleted
+        self.client.logout()
+        response = self.client.post(reverse('accounts:login'), {'username': self.student.email, 'password': PASSWORD})
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+        self.client.force_login(self.officer)
+        self.client.post(reverse('accounts:desk_account_switch', args=[self.student.pk]))
+        self.student.refresh_from_db()
+        self.assertTrue(self.student.is_active)
+
+    def test_a_switched_off_account_is_logged_out_straight_away(self):
+        member = Client()
+        member.force_login(self.student)
+        self.client.post(reverse('accounts:desk_account_switch', args=[self.student.pk]))
+        self.assertEqual(member.get(reverse('core:my_page')).status_code, 302)    # sent to the log-in page
+
+    def test_AD_P10_admin_can_verify_an_email_by_hand(self):
+        unverified = make_student(email='brian@students.campus.ac.ke', admission_no='227035', verified=False)
+        self.client.post(reverse('accounts:desk_account_verify', args=[unverified.pk]))
+        unverified.refresh_from_db()
+        self.assertTrue(unverified.is_verified)
+
+    def test_admin_accounts_cannot_be_changed_from_this_page(self):
+        other_officer = make_admin(email='otieno.k@campus.ac.ke', officer_no='SO-002')
+        response = self.client.post(reverse('accounts:desk_account_switch', args=[other_officer.pk]))
+        self.assertEqual(response.status_code, 404)
+        other_officer.refresh_from_db()
+        self.assertTrue(other_officer.is_active)
+
+    def test_opening_the_switch_address_in_the_browser_changes_nothing(self):
+        self.client.get(reverse('accounts:desk_account_switch', args=[self.student.pk]))
+        self.student.refresh_from_db()
+        self.assertTrue(self.student.is_active)
+
+    def test_NFR01_students_and_staff_cannot_manage_accounts(self):
+        for person in (self.student, self.staff):
+            self.client.force_login(person)
+            self.assertEqual(self.client.get(reverse('accounts:desk_accounts')).status_code, 403)
+            self.assertEqual(self.client.post(reverse('accounts:desk_account_switch', args=[self.staff.pk])).status_code, 403)

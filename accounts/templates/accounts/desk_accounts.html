@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Manage accounts{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Manage accounts</h1>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-12 col-md-6">
+    <label class="form-label" for="q">Search</label>
+    <input class="form-control" id="q" name="q" type="search" value="{{ q }}" placeholder="Name, email, admission number or staff ID">
+  </div>
+  <div class="col-8 col-md-3">
+    <label class="form-label" for="role">Role</label>
+    <select class="form-select" id="role" name="role">
+      <option value="">Students and Staff</option>
+      <option value="student" {% if role == 'student' %}selected{% endif %}>Students</option>
+      <option value="staff" {% if role == 'staff' %}selected{% endif %}>Staff</option>
+    </select>
+  </div>
+  <div class="col-4 col-md-3"><button type="submit" class="btn btn-success w-100">Search</button></div>
+</form>
+
+{% if page.object_list %}
+  <div class="table-scroll">
+    <table class="table align-middle">
+      <thead><tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">ID</th>
+                 <th scope="col">Email verified</th><th scope="col">Can log in</th><th scope="col"></th></tr></thead>
+      <tbody>
+        {% for account in page.object_list %}
+          <tr>
+            <td>{{ account.name }}<br><span class="small text-muted">{{ account.get_role_display }}{% if account.department %}, {{ account.department }}{% endif %}</span></td>
+            <td>{{ account.email }}</td>
+            <td>{{ account.admission_no|default:account.staff_no }}</td>
+            <td>{% if account.is_verified %}Yes{% else %}No{% endif %}</td>
+            <td>{% if account.is_active %}Yes{% else %}<strong>Switched off</strong>{% endif %}</td>
+            <td>
+              <div class="d-flex flex-wrap gap-1">
+                {% if not account.is_verified %}
+                  <form method="post" action="{% url 'accounts:desk_account_verify' account.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success">Verify</button>
+                  </form>
+                {% endif %}
+                <form method="post" action="{% url 'accounts:desk_account_switch' account.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-success">{% if account.is_active %}Switch off{% else %}Switch on{% endif %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'includes/pager.html' with extra=extra %}
+{% else %}
+  <p>No accounts found.</p>
+{% endif %}
+<p class="tip">Tip: accounts are never deleted, so their reports and claims stay on record. Use Verify only after checking the person's ID card at the desk.</p>
+{% endblock %}

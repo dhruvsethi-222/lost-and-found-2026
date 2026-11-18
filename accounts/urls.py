@@ -32,6 +32,11 @@ urlpatterns = [
                                           authentication_form=DeskLoginForm,
                                           redirect_authenticated_user=True), name='desk_login'),
 
+    # Admin: manage accounts (AD-P10)
+    path('desk/', views.account_list, name='desk_accounts'),
+    path('desk/<int:pk>/switch/', views.account_switch, name='desk_account_switch'),
+    path('desk/<int:pk>/verify/', views.account_verify, name='desk_account_verify'),
+
     # Log out works only from the Log out button (a POST), never from a link
     path('logout/', LogoutView.as_view(), name='logout'),
 ]
