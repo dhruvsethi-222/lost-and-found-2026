@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Dispose of an item{% endblock %}
+{% block content %}
+<section class="narrow">
+  <p><a href="{% url 'items:desk_expired' %}">&larr; Expired items</a></p>
+  <h1 class="h3 mb-3">Dispose of an expired item</h1>
+
+  <div class="tip">
+    <strong>{{ item.get_category_display }}</strong> &middot; {{ item.get_place_display }} &middot; found {{ item.date_found|date:"j M Y" }}
+    <br><span class="small">{{ item.description }}</span>
+    <br><span class="small">Kept until {{ item.retention_ends|date:"j M Y" }}.</span>
+  </div>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <button type="submit" class="btn btn-success w-100">Dispose of item</button>
+  </form>
+
+  <p class="tip">Tip: the status becomes Disposed and cannot be edited. The private details are deleted.</p>
+</section>
+{% endblock %}

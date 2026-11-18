@@ -135,3 +135,92 @@ class RecordFoundItemTests(TestCase):
         self.client.force_login(make_student())
         self.assertEqual(self.post().status_code, 403)
         self.assertFalse(FoundItem.objects.exists())
+
+
+class DisposalTests(TestCase):
+    """AD-P9, AD-S5 and NFR-02: items past the retention period (90 days) are disposed of."""
+
+    def setUp(self):
+        self.officer = make_admin()
+        self.client.force_login(self.officer)
+
+    def item(self, days_ago, status=FoundItem.Status.IN_CUSTODY):
+        item = FoundItem.objects.create(recorded_by=self.officer, category='umbrella', description='Blue umbrella',
+                                        place='cafeteria', photo='found_items/x.png', status=status,
+                                        date_found=timezone.localdate() - timedelta(days=days_ago))
+        VerificationDetail.objects.create(found_item=item, marks='SECRET broken handle')
+        return item
+
+    def dispose(self, item, reason='Donated to the campus charity drive'):
+        return self.client.post(reverse('items:desk_dispose', args=[item.pk]), {'reason': reason}, follow=True)
+
+    def test_NFR02_an_item_past_its_retention_period_appears_in_the_expired_list(self):
+        old = self.item(days_ago=91)
+        soon = self.item(days_ago=80)              # expires in 10 days
+        fresh = self.item(days_ago=5)
+        page = self.client.get(reverse('items:desk_expired'))
+        self.assertEqual(list(page.context['expired']), [old])
+        self.assertEqual(list(page.context['expiring_soon']), [soon])
+        self.assertNotIn(fresh, page.context['expiring_soon'])
+
+    def test_the_last_day_of_the_retention_period_is_not_expired_yet(self):
+        self.assertFalse(self.item(days_ago=90).is_expired)
+        self.assertTrue(self.item(days_ago=91).is_expired)
+
+    def test_AD_P9_dispose_of_an_expired_item_with_officer_date_and_reason(self):
+        item = self.item(days_ago=100)
+        self.dispose(item)
+        item.refresh_from_db()
+        self.assertEqual(item.status, FoundItem.Status.DISPOSED)                       # AD-S5
+        self.assertEqual((item.disposed_by, item.disposal_reason),
+                         (self.officer, 'Donated to the campus charity drive'))      # NFR-04
+        self.assertIsNotNone(item.disposed_at)
+
+    def test_NFR02_private_details_are_deleted_when_an_item_is_disposed_of(self):
+        item = self.item(days_ago=100)
+        self.dispose(item)
+        self.assertFalse(VerificationDetail.objects.filter(found_item=item).exists())
+        page = self.client.get(reverse('items:desk_found_detail', args=[item.pk]))
+        self.assertContains(page, 'private details were deleted')
+        self.assertNotContains(page, 'SECRET')
+
+    def test_an_item_that_has_not_expired_cannot_be_disposed_of(self):
+        item = self.item(days_ago=10)
+        self.dispose(item)
+        item.refresh_from_db()
+        self.assertEqual(item.status, FoundItem.Status.IN_CUSTODY)
+
+    def test_only_items_in_custody_can_be_disposed_of(self):
+        item = self.item(days_ago=200, status=FoundItem.Status.CLAIMED)     # the owner is coming to collect it
+        self.dispose(item)
+        item.refresh_from_db()
+        self.assertEqual(item.status, FoundItem.Status.CLAIMED)
+
+    def test_an_item_with_open_claims_cannot_be_disposed_of(self):
+        from claims.models import Claim
+        item = self.item(days_ago=100)
+        Claim.objects.create(found_item=item, user=make_student(), answers='Mine')
+        response = self.dispose(item)
+        self.assertContains(response, 'Decide them before disposing')
+        item.refresh_from_db()
+        self.assertEqual(item.status, FoundItem.Status.IN_CUSTODY)
+
+    def test_NFR04_a_disposal_needs_a_reason(self):
+        item = self.item(days_ago=100)
+        self.dispose(item, reason='')
+        item.refresh_from_db()
+        self.assertEqual(item.status, FoundItem.Status.IN_CUSTODY)
+
+    def test_NFR04_a_disposed_item_cannot_be_disposed_of_again(self):
+        item = self.item(days_ago=100)
+        self.dispose(item)
+        self.dispose(item, reason='Changed the reason')
+        item.refresh_from_db()
+        self.assertEqual(item.disposal_reason, 'Donated to the campus charity drive')
+
+    def test_NFR01_students_and_staff_cannot_dispose_of_items(self):
+        item = self.item(days_ago=100)
+        for person in (make_student(), make_staff()):
+            self.client.force_login(person)
+            self.assertEqual(self.client.get(reverse('items:desk_expired')).status_code, 403)
+            self.assertEqual(self.dispose(item).status_code, 403)

@@ -104,3 +104,14 @@ class VerificationDetailForm(forms.ModelForm):
         if not serial_no and not marks and not contents:
             raise ValidationError('Enter at least one private detail. Claims are checked against these.')
         return cleaned
+
+
+class DisposeForm(forms.Form):
+    """AD-P9: the Admin must say how the item was disposed of (NFR-04)."""
+
+    reason = forms.CharField(label='How was it disposed of?', max_length=500,
+                             widget=forms.Textarea(attrs={'rows': 2, 'placeholder': 'e.g. donated to the campus charity drive'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        style_form(self)

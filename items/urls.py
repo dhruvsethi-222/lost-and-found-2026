@@ -12,4 +12,6 @@ urlpatterns = [
     path('desk/found/<int:pk>/', views.found_item_detail, name='desk_found_detail'),
     path('desk/reports/', views.report_list, name='desk_reports'),
     path('desk/matches/', views.match_list, name='desk_matches'),
+    path('desk/expired/', views.expired_list, name='desk_expired'),
+    path('desk/found/<int:pk>/dispose/', views.dispose_item, name='desk_dispose'),
 ]

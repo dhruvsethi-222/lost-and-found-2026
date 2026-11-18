@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Expired items{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Expired items</h1>
+<p>Found items are kept for {{ retention_days }} days. After that they can be disposed of, and their private details are deleted.</p>
+
+<section class="mb-4" aria-labelledby="expired">
+  <h2 id="expired" class="h5">Past the retention period</h2>
+  {% if expired %}
+    <div class="table-scroll">
+      <table class="table align-middle">
+        <thead><tr><th scope="col">Item</th><th scope="col">Where found</th><th scope="col">Date found</th>
+                   <th scope="col">Kept until</th><th scope="col"></th></tr></thead>
+        <tbody>
+          {% for item in expired %}
+            <tr>
+              <td>{{ item.get_category_display }}<br><span class="small text-muted">{{ item.description|truncatechars:40 }}</span></td>
+              <td>{{ item.get_place_display }}</td>
+              <td>{{ item.date_found|date:"j M Y" }}</td>
+              <td>{{ item.retention_ends|date:"j M Y" }}</td>
+              <td><a class="btn btn-sm btn-success" href="{% url 'items:desk_dispose' item.pk %}">Dispose</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No item is past its retention period.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="soon">
+  <h2 id="soon" class="h5">Expiring in the next two weeks</h2>
+  {% if expiring_soon %}
+    <ul class="list-group medium ms-0">
+      {% for item in expiring_soon %}
+        <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+          <span>{{ item.get_category_display }} &middot; {{ item.get_place_display }} &middot; kept until {{ item.retention_ends|date:"j M Y" }}</span>
+          <a class="btn btn-sm btn-outline-success" href="{% url 'items:desk_found_detail' item.pk %}">Open</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No item expires in the next two weeks.</p>
+  {% endif %}
+</section>
+{% endblock %}

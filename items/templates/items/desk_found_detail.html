@@ -17,8 +17,20 @@
       {% if item.handed_in_report %}
         <dt class="col-sm-4">Handed in by</dt><dd class="col-sm-8">{{ item.handed_in_report.user.name }} ({{ item.handed_in_report.user.get_role_display }})</dd>
       {% endif %}
+      {% if item.status == 'in_custody' %}
+        <dt class="col-sm-4">Kept until</dt><dd class="col-sm-8">{{ item.retention_ends|date:"j F Y" }}{% if item.is_expired %} <strong>(expired)</strong>{% endif %}</dd>
+      {% endif %}
+      {% if item.status == 'disposed' %}
+        <dt class="col-sm-4">Disposed of</dt><dd class="col-sm-8">{{ item.disposed_at|date:"j M Y, H:i" }} by {{ item.disposed_by.name }}: {{ item.disposal_reason }}</dd>
+      {% endif %}
     </dl>
+    {% if item.is_expired %}
+      <a class="btn btn-success mb-3" href="{% url 'items:desk_dispose' item.pk %}">Dispose of this item</a>
+    {% endif %}
 
+    {% if item.status == 'disposed' %}
+      <p class="tip">The private details were deleted when the item was disposed of.</p>
+    {% else %}
     <section class="private-box" aria-labelledby="private">
       <h2 id="private" class="h6">&#128274; Private details (Admin only)</h2>
       {% with d=item.verification_detail %}
@@ -29,6 +41,7 @@
         </dl>
       {% endwith %}
     </section>
+    {% endif %}
   </div>
 </div>
 

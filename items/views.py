@@ -7,24 +7,31 @@ Pages for items.
   /items/desk/found/<id>/    Admin: one found item, with its private details
   /items/desk/reports/       Admin: reports sent in by Students and Staff
   /items/desk/matches/       Admin: ranked matches between lost reports and found items
+  /items/desk/expired/       Admin: items past their retention period, and items expiring soon
+  /items/desk/found/<id>/dispose/   Admin: dispose of an expired item (AD-P9)
 
 Every view starts with the same two checks: logged in, and the right role
 (explained at the top of core/views.py).
 """
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.models import Role
+from claims.models import Claim
 from matching.matcher import match_found_item, match_lost_report
 from matching.models import Match
 
 from .emails import send_hand_in_confirmation
-from .forms import FoundItemForm, ItemReportForm, VerificationDetailForm
-from .models import FoundItem, ItemReport
+from .forms import DisposeForm, FoundItemForm, ItemReportForm, VerificationDetailForm
+from .models import FoundItem, ItemReport, VerificationDetail
 
 
 @login_required
@@ -121,7 +128,7 @@ def found_item_detail(request, pk):
     if request.user.role != Role.ADMIN:
         raise PermissionDenied
 
-    item = get_object_or_404(FoundItem.objects.select_related('recorded_by', 'verification_detail'), pk=pk)
+    item = get_object_or_404(FoundItem.objects.select_related('recorded_by', 'disposed_by'), pk=pk)
     # AD-P3 / AD-O2: the lost reports that match this item, best first
     matches = Match.objects.filter(found_item=item).select_related('report__user').order_by('rank')
     return render(request, 'items/desk_found_detail.html', {'item': item, 'matches': matches})
@@ -152,3 +159,64 @@ def match_list(request):
                .order_by('-found_item__created_at', 'rank'))
     page = Paginator(matches, 15).get_page(request.GET.get('page'))
     return render(request, 'items/desk_matches.html', {'page': page})
+
+
+@login_required(login_url='accounts:desk_login')
+def expired_list(request):
+    """
+    NFR-02: items still in custody after the retention period (RETENTION_DAYS) can be disposed of.
+    Items that will expire within EXPIRING_SOON_DAYS are listed too, so the desk can plan.
+    """
+    if request.user.role != Role.ADMIN:
+        raise PermissionDenied
+
+    # An item is kept until date_found + RETENTION_DAYS (see FoundItem.retention_ends), so:
+    #   expired:        date_found is before  today - RETENTION_DAYS
+    #   expiring soon:  date_found is within EXPIRING_SOON_DAYS after that day
+    oldest_kept = timezone.localdate() - timedelta(days=settings.RETENTION_DAYS)
+    soon_limit = oldest_kept + timedelta(days=settings.EXPIRING_SOON_DAYS)
+    in_custody = FoundItem.objects.filter(status=FoundItem.Status.IN_CUSTODY).order_by('date_found')
+    return render(request, 'items/desk_expired.html', {
+        'expired': in_custody.filter(date_found__lt=oldest_kept),
+        'expiring_soon': in_custody.filter(date_found__gte=oldest_kept, date_found__lte=soon_limit),
+        'retention_days': settings.RETENTION_DAYS,
+    })
+
+
+@login_required(login_url='accounts:desk_login')
+def dispose_item(request, pk):
+    """
+    AD-P9: dispose of an expired item. AD-S5: its status is stored as Disposed.
+    Saved with the officer, the time and the reason, and never changed again (NFR-04).
+    """
+    if request.user.role != Role.ADMIN:
+        raise PermissionDenied
+
+    item = get_object_or_404(FoundItem, pk=pk)
+
+    # Only an item still in custody and past its retention period can be disposed of.
+    if not item.is_expired:
+        messages.error(request, 'Only an item in custody that is past its retention period can be disposed of.')
+        return redirect('items:desk_found_detail', pk=item.pk)
+
+    # An owner may still be waiting for a decision: decide the open claims first.
+    if Claim.objects.filter(found_item=item, status__in=['pending', 'more_evidence']).exists():
+        messages.error(request, 'This item has open claims. Decide them before disposing of the item.')
+        return redirect('items:desk_found_detail', pk=item.pk)
+
+    if request.method == 'POST':
+        form = DisposeForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                item.status = FoundItem.Status.DISPOSED          # AD-S5
+                item.disposed_by = request.user
+                item.disposed_at = timezone.now()
+                item.disposal_reason = form.cleaned_data['reason']
+                item.save()
+                # NFR-02: the private details are personal data, so they are deleted with the item.
+                VerificationDetail.objects.filter(found_item=item).delete()
+            messages.success(request, 'The item is disposed of and its private details are deleted.')
+            return redirect('items:desk_expired')
+    else:
+        form = DisposeForm()
+    return render(request, 'items/desk_dispose.html', {'item': item, 'form': form})
