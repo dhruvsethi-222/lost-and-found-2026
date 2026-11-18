@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'search',     # searching found items
     'matching',   # back-end matching of lost reports and found items (no pages of its own)
     'claims',     # claiming an item and the Admin's verification decision
+    'handover',   # handing an item back to its owner
+    'posts',      # posts and replies (the user tweet and response module)
     'core',       # home page, My page, Security desk dashboard, shared templates
 ]
 
@@ -135,6 +137,12 @@ SITE_URL = env('SITE_URL', 'http://127.0.0.1:8000')
 
 # Shown to a claimant when a claim is approved.
 DESK_COLLECTION_HOURS = env('DESK_COLLECTION_HOURS', 'Monday to Friday, 8:00 am to 5:00 pm')
+
+# ---------------------------------------------------------------- retention (NFR-02)
+# How many days a found item is kept at the desk before it can be disposed of.
+RETENTION_DAYS = int(env('RETENTION_DAYS', '90'))
+# Items this many days from the end of their retention period are shown as "expiring soon".
+EXPIRING_SOON_DAYS = 14
 
 # Only campus email addresses can register.
 STUDENT_EMAIL_DOMAINS = env_list('STUDENT_EMAIL_DOMAINS', 'students.campus.ac.ke')

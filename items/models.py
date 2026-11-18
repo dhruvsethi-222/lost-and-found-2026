@@ -3,6 +3,7 @@ Items: what Students and Staff report, and what the Admin holds at the security 
 
 Database schema tables: item_report, found_item, verification_detail.
 """
+from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -93,6 +94,12 @@ class FoundItem(models.Model):
                                          related_name='received_items', limit_choices_to={'type': 'found'})
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Disposal (AD-P9, NFR-04): who disposed of the item, when and why. Empty until then.
+    disposed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+                                    related_name='found_items_disposed')
+    disposed_at = models.DateTimeField(null=True, blank=True)
+    disposal_reason = models.TextField(blank=True)
+
     class Meta:
         db_table = 'found_item'
         ordering = ['-created_at']
@@ -101,6 +108,16 @@ class FoundItem(models.Model):
 
     def __str__(self):
         return f'{self.get_category_display()} found at {self.get_place_display()} on {self.date_found:%d %b %Y}'
+
+    @property
+    def retention_ends(self):
+        """The last day the item is kept: the date found plus RETENTION_DAYS (90 by default)."""
+        return self.date_found + timedelta(days=settings.RETENTION_DAYS)
+
+    @property
+    def is_expired(self):
+        """True when an item still in custody has passed its retention period (NFR-02)."""
+        return self.status == self.Status.IN_CUSTODY and self.retention_ends < timezone.localdate()
 
 
 class VerificationDetail(models.Model):
