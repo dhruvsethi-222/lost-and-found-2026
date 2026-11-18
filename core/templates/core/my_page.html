@@ -35,9 +35,14 @@
         {% else %}
           <li class="done">Under review</li>
           <li class="done {% if claim.status != 'approved' %}refused{% endif %}">{{ claim.get_status_display }}</li>
+          {% if claim.status == 'approved' %}
+            <li class="{% if claim.found_item.status == 'returned' %}done{% else %}current{% endif %}">Collected</li>
+          {% endif %}
         {% endif %}
       </ol>
-      {% if claim.status == 'approved' %}
+      {% if claim.status == 'approved' and claim.found_item.status == 'returned' %}
+        <p class="mb-0 small">You collected it on {{ claim.hand_over.date|date:"j M Y, H:i" }}.</p>
+      {% elif claim.status == 'approved' %}
         <p class="mb-0 small">Collect it from the security desk, {{ collection_hours }}. Bring your student or staff ID.</p>
       {% elif claim.status == 'more_evidence' %}
         <p class="mb-2 small">The security officer asked: {{ claim.reason }}</p>

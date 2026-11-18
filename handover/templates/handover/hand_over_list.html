@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Hand-over{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Hand-over</h1>
+
+<section class="mb-4" aria-labelledby="waiting">
+  <h2 id="waiting" class="h5">Waiting for collection</h2>
+  {% if waiting %}
+    <div class="table-scroll">
+      <table class="table align-middle">
+        <thead><tr><th scope="col">Item</th><th scope="col">Owner</th><th scope="col">ID to check</th>
+                   <th scope="col">Approved</th><th scope="col"></th></tr></thead>
+        <tbody>
+          {% for claim in waiting %}
+            <tr>
+              <td>{{ claim.found_item.get_category_display }}<br><span class="small text-muted">{{ claim.found_item.description|truncatechars:40 }}</span></td>
+              <td>{{ claim.user.name }}<br><span class="small text-muted">{{ claim.user.get_role_display }}</span></td>
+              <td>{{ claim.user.admission_no|default:claim.user.staff_no }}</td>
+              <td>{{ claim.decided_at|date:"j M Y" }}</td>
+              <td><a class="btn btn-sm btn-success" href="{% url 'handover:record' claim.pk %}">Hand over</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>Nothing is waiting to be collected.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="recent">
+  <h2 id="recent" class="h5">Latest hand-overs</h2>
+  {% if recent %}
+    <div class="table-scroll">
+      <table class="table table-sm align-middle">
+        <thead><tr><th scope="col">Item</th><th scope="col">Collected by</th><th scope="col">ID shown</th>
+                   <th scope="col">Handed over by</th><th scope="col">When</th></tr></thead>
+        <tbody>
+          {% for hand_over in recent %}
+            <tr>
+              <td>{{ hand_over.claim.found_item.get_category_display }}</td>
+              <td>{{ hand_over.claim.user.name }}</td>
+              <td>{{ hand_over.collector_id }}</td>
+              <td>{{ hand_over.released_by.name }}</td>
+              <td>{{ hand_over.date|date:"j M Y, H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No items have been handed over yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

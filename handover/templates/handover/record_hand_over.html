@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Hand over item{% endblock %}
+{% block content %}
+<section class="narrow">
+  <p><a href="{% url 'handover:list' %}">&larr; Waiting for collection</a></p>
+  <h1 class="h3 mb-3">Hand over item</h1>
+
+  <div class="tip">
+    <strong>{{ item.get_category_display }}</strong> &rarr; {{ claim.user.name }} (approved {{ claim.decided_at|date:"j M Y" }})
+    <br><span class="small">{{ item.description }} &middot; found at {{ item.get_place_display }}</span>
+    <br><span class="small">Ask for the {% if claim.user.admission_no %}student ID card: admission number {{ claim.user.admission_no }}{% else %}staff ID card: staff ID {{ claim.user.staff_no }}{% endif %}.</span>
+  </div>
+
+  <form method="post" data-validate>
+    {% csrf_token %}
+    {% include 'includes/form_errors.html' %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <button type="submit" class="btn btn-success w-100">Record hand-over</button>
+  </form>
+
+  <p class="tip">Tip: the status becomes Returned and cannot be edited. The owner gets an email receipt.</p>
+</section>
+{% endblock %}

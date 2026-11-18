@@ -72,6 +72,11 @@
     <h2 id="decision" class="h6">Decision: {{ claim.get_status_display }}</h2>
     <p class="mb-1">Reason: {{ claim.reason }}</p>
     <p class="mb-0 small">By {{ claim.decided_by.name }} on {{ claim.decided_at|date:"j M Y, H:i" }}. This record cannot be changed.</p>
+    {% if claim.hand_over %}
+      <p class="mb-0 mt-2"><strong>Handed over</strong> on {{ claim.hand_over.date|date:"j M Y, H:i" }} by {{ claim.hand_over.released_by.name }}, ID {{ claim.hand_over.collector_id }} checked.</p>
+    {% elif claim.status == 'approved' and item.status == 'claimed' %}
+      <a class="btn btn-success mt-2" href="{% url 'handover:record' claim.pk %}">Record hand-over</a>
+    {% endif %}
   </section>
 {% endif %}
 {% endblock %}

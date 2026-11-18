@@ -1,0 +1,9 @@
+{% autoescape off %}Hello {{ claim.user.name }},
+
+This confirms that the {{ claim.found_item.get_category_display|lower }} you claimed was collected from the security desk on {{ hand_over.date|date:"j F Y" }} at {{ hand_over.date|date:"H:i" }}, using ID number {{ hand_over.collector_id }}.
+
+It was handed over by {{ hand_over.released_by.name }}.
+
+If you did not collect this item, contact the security desk straight away.
+
+Lost and Found{% endautoescape %}
