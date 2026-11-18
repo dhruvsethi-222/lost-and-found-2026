@@ -22,6 +22,10 @@ with an audit log of every decision, hand-over and disposal, and posts and repli
 |---|---|---|
 | Dev 1 | [Dev1_Breakdown.docx](docs/Dev1_Breakdown.docx) | How Dev 1 was built and how every part of the code works |
 | Dev 1 | [Dev1_Requirements_Check.docx](docs/Dev1_Requirements_Check.docx) | Dev 1 checked against the functional requirements, non-functional requirements and objectives |
+| Dev 2 | [Dev2_Breakdown.docx](docs/Dev2_Breakdown.docx) | How Dev 2 (matching, alerts, claims, verification) was built |
+| Dev 2 | [Dev2_Requirements_Check.docx](docs/Dev2_Requirements_Check.docx) | Dev 2 checked against the requirements and objectives |
+| Dev 3 | [Dev3_Breakdown.docx](docs/Dev3_Breakdown.docx) | How Dev 3 (hand-over, disposal, accounts, reports, posts) was built |
+| All | [Final_Requirements_Check.docx](docs/Final_Requirements_Check.docx) | The whole system checked against all 77 functional requirements, the non-functional requirements and the objectives |
 
 ## How the code is organised
 
