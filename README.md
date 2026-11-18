@@ -11,6 +11,11 @@ and ranked), email match alerts, the hand-in confirmation for Staff, claims with
 and the Admin's verification: the claim beside the private details, then approve, reject or ask for
 more details, with a reason. Every decision is emailed and can never be changed.
 
+**Dev 3 (Sprints 5 and 6):** the hand-over (the collector's ID must match the claimant, the item becomes
+Returned, the owner gets a receipt), disposal of items past the 90-day retention period (their private
+details are deleted), Manage accounts (switch an account off or on, verify by hand), the Admin's reports
+with an audit log of every decision, hand-over and disposal, and posts and replies for Students and Staff.
+
 ## Documents
 
 | Development | Document | What it is |
@@ -27,7 +32,9 @@ more details, with a reason. Every decision is emailed and can never be changed.
 | `search` | Searching found items (public details only), with a Claim button on each result |
 | `matching` | The back-end matching of lost reports and found items, and the match alert email. No pages of its own |
 | `claims` | Claiming an item, and the Admin's verification decision |
-| `core` | Home page, My page, Security desk, the shared form helper |
+| `handover` | Handing an item back to its owner |
+| `posts` | Posts and replies for Students and Staff (the user tweet and response module) |
+| `core` | Home page, My page, Security desk, the Admin's reports, the shared form helper |
 | `templates`, `static` | The shared page layout, CSS and JavaScript |
 | `config` | Settings and the main list of web addresses |
 
@@ -72,3 +79,19 @@ coverage run manage.py test && coverage report
 8. Turn on "Force HTTPS", press Reload.
 
 The full steps, with explanations, are in the breakdown documents.
+
+## Back up and restore the database (NFR-07)
+
+Back up (run it regularly; on PythonAnywhere add it as a daily Scheduled task):
+
+```
+python manage.py dumpdata --natural-foreign --exclude contenttypes --exclude auth.permission --exclude sessions --output backup.json
+```
+
+Restore, into an empty database after `python manage.py migrate`:
+
+```
+python manage.py loaddata backup.json
+```
+
+Keep `backup.json` and the `media` folder (the photos) somewhere safe. They contain personal data, so never put them on GitHub.
