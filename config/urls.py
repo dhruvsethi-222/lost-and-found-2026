@@ -17,6 +17,7 @@ urlpatterns = [
     path('search/', include('search.urls')),        # search found items
     path('claims/', include('claims.urls')),        # claim an item, verify a claim
     path('handover/', include('handover.urls')),    # hand an item back to its owner
+    path('posts/', include('posts.urls')),          # posts and replies
     path('system-admin/', admin.site.urls),         # Django's built-in admin, for the system owner only
 ]
 

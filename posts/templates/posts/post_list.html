@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Posts{% endblock %}
+{% block content %}
+<section class="medium ms-0">
+  <h1 class="h3 mb-3">Posts</h1>
+
+  <form method="post" data-validate class="mb-2">
+    {% csrf_token %}
+    {% for field in form %}{% include 'includes/field.html' %}{% endfor %}
+    <button type="submit" class="btn btn-success">Publish</button>
+  </form>
+  <p class="tip">Tip: never post the serial number, marks or contents of an item. The security desk uses them to check claims. To get an item back, report it and claim it.</p>
+
+  {% for post in page.object_list %}
+    <article class="post-card">
+      <p class="mb-1"><strong>{{ post.user.name }}</strong>
+        <span class="small text-muted">&middot; {{ post.user.get_role_display }} &middot; {{ post.date|date:"j M Y, H:i" }}</span></p>
+      <p class="mb-2 keep-lines">{{ post.text }}</p>
+
+      {% for answer in post.replies.all %}
+        <div class="reply">
+          <p class="mb-0"><strong>{{ answer.user.name }}</strong>
+            <span class="small text-muted">&middot; {{ answer.date|date:"j M, H:i" }}</span></p>
+          <p class="mb-0 keep-lines">{{ answer.text }}</p>
+        </div>
+      {% endfor %}
+
+      <form method="post" action="{% url 'posts:reply' post.pk %}" class="reply-form">
+        {% csrf_token %}
+        <label class="visually-hidden" for="reply-{{ post.pk }}">Reply to {{ post.user.name }}</label>
+        <input class="form-control form-control-sm" id="reply-{{ post.pk }}" name="text" maxlength="280" required placeholder="Write a reply">
+        <button type="submit" class="btn btn-sm btn-outline-success">Reply</button>
+      </form>
+    </article>
+  {% empty %}
+    <p>No posts yet. Be the first to post.</p>
+  {% endfor %}
+  {% include 'includes/pager.html' with extra="" %}
+</section>
+{% endblock %}
