@@ -41,6 +41,7 @@ class HandOverTests(TestCase):
         page = self.client.get(reverse('handover:list'))
         self.assertContains(page, 'Jane Wanjiru')
         self.assertContains(page, reverse('handover:record', args=[self.claim.pk]))
+        self.assertEqual(self.client.get(reverse('core:desk')).context['waiting_collection'], 1)
 
     def test_AD_P8_record_the_hand_over_and_the_item_becomes_returned(self):
         response = self.hand_over()

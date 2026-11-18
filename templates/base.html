@@ -28,12 +28,14 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'items:desk_record_found' %}">Record found item</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'items:desk_found_list' %}">Found items</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'claims:desk_list' %}">Claims</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'items:desk_matches' %}">Matches</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'items:desk_reports' %}">Reports</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'handover:list' %}">Hand-over</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:desk_accounts' %}">Accounts</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'core:reports' %}">Reports</a></li>
               {% else %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'core:my_page' %}">My page</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'items:report' %}">Report an item</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'search:search' %}">Search</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'posts:list' %}">Posts</a></li>
               {% endif %}
               <li class="nav-item">
                 <form method="post" action="{% url 'accounts:logout' %}">

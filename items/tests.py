@@ -162,6 +162,7 @@ class DisposalTests(TestCase):
         self.assertEqual(list(page.context['expired']), [old])
         self.assertEqual(list(page.context['expiring_soon']), [soon])
         self.assertNotIn(fresh, page.context['expiring_soon'])
+        self.assertEqual(self.client.get(reverse('core:desk')).context['expired_items'], 1)
 
     def test_the_last_day_of_the_retention_period_is_not_expired_yet(self):
         self.assertFalse(self.item(days_ago=90).is_expired)

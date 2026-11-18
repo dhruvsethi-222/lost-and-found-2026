@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Reports</h1>
+
+<form method="get" class="row g-2 align-items-end mb-2" data-validate>
+  {% include 'includes/form_errors.html' %}
+  <div class="col-6 col-md-4">{% include 'includes/field.html' with field=form.date_from %}</div>
+  <div class="col-6 col-md-4">{% include 'includes/field.html' with field=form.date_to %}</div>
+  <div class="col-12 col-md-4 mb-3"><button type="submit" class="btn btn-success w-100">Show</button></div>
+</form>
+<p class="mb-3">From <strong>{{ date_from|date:"j M Y" }}</strong> to <strong>{{ date_to|date:"j M Y" }}</strong>.
+  <button type="button" class="btn btn-sm btn-outline-success ms-2 no-print" onclick="window.print()">Print</button></p>
+
+<h2 class="h5">Items</h2>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="stat"><div class="number">{{ received }}</div><p class="mb-0">Received at the desk</p></div></div>
+  <div class="col-6 col-lg-3"><div class="stat"><div class="number">{{ returned }}</div><p class="mb-0">Returned to owners</p></div></div>
+  <div class="col-6 col-lg-3"><div class="stat"><div class="number">{{ disposed }}</div><p class="mb-0">Disposed of</p></div></div>
+  <div class="col-6 col-lg-3"><div class="stat"><div class="number">{{ lost_reported }}</div><p class="mb-0">Reported lost</p></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <h2 class="h5">Claims</h2>
+    <table class="table table-sm">
+      <tbody>
+        <tr><th scope="row">Pending now</th><td>{{ pending_now }}</td></tr>
+        <tr><th scope="row">Approved in this period</th><td>{{ approved }}</td></tr>
+        <tr><th scope="row">Rejected in this period</th><td>{{ rejected }}</td></tr>
+        <tr><th scope="row">Closed (another claim approved)</th><td>{{ closed }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col-md-6">
+    <h2 class="h5">Retention</h2>
+    <table class="table table-sm">
+      <tbody>
+        <tr><th scope="row">Past the retention period now</th><td>{{ expired_now }}</td></tr>
+        <tr><th scope="row">Expiring in the next two weeks</th><td>{{ expiring_soon }}</td></tr>
+      </tbody>
+    </table>
+    <a class="btn btn-sm btn-outline-success no-print" href="{% url 'items:desk_expired' %}">Open expired items</a>
+  </div>
+</div>
+
+<h2 class="h5">Where most items are lost</h2>
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <h3 class="h6">By place</h3>
+    {% for label, total in top_places %}
+      <div class="bar-row"><span>{{ label }}</span><span class="bar" style="--share: {% widthratio total lost_reported 100 %}%"></span><strong>{{ total }}</strong></div>
+    {% empty %}<p>No lost reports in this period.</p>{% endfor %}
+  </div>
+  <div class="col-md-6">
+    <h3 class="h6">By type of item</h3>
+    {% for label, total in top_categories %}
+      <div class="bar-row"><span>{{ label }}</span><span class="bar" style="--share: {% widthratio total lost_reported 100 %}%"></span><strong>{{ total }}</strong></div>
+    {% empty %}<p>No lost reports in this period.</p>{% endfor %}
+  </div>
+</div>
+
+{# NFR-04: every decision, hand-over and disposal, with the officer, the date and the reason #}
+<h2 class="h5">Audit log</h2>
+{% if audit_log %}
+  <div class="table-scroll">
+    <table class="table table-sm align-middle">
+      <thead><tr><th scope="col">When</th><th scope="col">What</th><th scope="col">Item</th>
+                 <th scope="col">Owner or claimant</th><th scope="col">Officer</th><th scope="col">Reason</th></tr></thead>
+      <tbody>
+        {% for entry in audit_log %}
+          <tr>
+            <td class="text-nowrap">{{ entry.when|date:"j M Y, H:i" }}</td>
+            <td>{{ entry.what }}</td>
+            <td>{{ entry.item.get_category_display }}</td>
+            <td>{{ entry.person|default:"—" }}</td>
+            <td>{{ entry.officer.name }}</td>
+            <td>{{ entry.reason }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No decisions, hand-overs or disposals in this period.</p>
+{% endif %}
+{% endblock %}
