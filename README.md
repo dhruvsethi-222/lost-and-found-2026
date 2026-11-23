@@ -63,6 +63,14 @@ python manage.py runserver
 Open http://127.0.0.1:8000. Verification emails are printed in the terminal on a laptop:
 copy the link from there into the browser.
 
+## Use MySQL on your laptop
+
+1. Install MySQL Server and MySQL Workbench from https://dev.mysql.com/downloads/
+2. In Workbench, open and run `docs/mysql_setup.sql` (makes the `lostandfound` database and its account).
+3. `pip install mysqlclient`
+4. In `.env`, remove the `#` from the six "MySQL on your laptop" lines.
+5. `python manage.py migrate` makes all the tables in MySQL. Then `python manage.py runserver`.
+
 ## Run the tests
 
 ```bash
