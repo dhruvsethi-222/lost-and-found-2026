@@ -17,7 +17,6 @@ from datetime import datetime, time, timedelta
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -56,7 +55,9 @@ def my_page(request):
     claims = Claim.objects.filter(user=request.user).select_related('found_item', 'hand_over')
 
     # Match alerts: items at the desk that match one of my lost reports and that I have not claimed yet.
-    claimed_item_ids = [claim.found_item_id for claim in claims]
+    claimed_item_ids = []
+    for claim in claims:
+        claimed_item_ids.append(claim.found_item_id)
     alerts = (Match.objects.filter(report__user=request.user, found_item__status=FoundItem.Status.IN_CUSTODY)
               .exclude(found_item_id__in=claimed_item_ids)
               .select_related('report', 'found_item')
@@ -108,9 +109,26 @@ def top_five(reports, field, choices):
     Counts the reports for each value of one field (place or category) and returns the five largest,
     e.g. [('Library', 12), ('Cafeteria', 7), ...].
     """
-    rows = reports.values(field).annotate(total=Count('id')).order_by('-total')[:5]
-    labels = dict(choices)
-    return [(labels.get(row[field], row[field]), row['total']) for row in rows]
+    counts = []
+    for code, label in choices:
+        if field == 'place':
+            total = reports.filter(place=code).count()
+        else:
+            total = reports.filter(category=code).count()
+        if total > 0:
+            counts.append((label, total))
+    counts.sort(key=second_value, reverse=True)              # biggest first
+    return counts[:5]
+
+
+def second_value(pair):
+    """Used for sorting: gives the number in a (label, number) pair."""
+    return pair[1]
+
+
+def when_it_happened(entry):
+    """Used for sorting the audit log: gives the date and time of one entry."""
+    return entry['when']
 
 
 @login_required(login_url='accounts:desk_login')
@@ -155,7 +173,7 @@ def reports(request):
     for item in disposed:
         audit_log.append({'when': item.disposed_at, 'what': 'Disposed', 'item': item, 'person': '',
                           'officer': item.disposed_by, 'reason': item.disposal_reason})
-    audit_log.sort(key=lambda entry: entry['when'], reverse=True)
+    audit_log.sort(key=when_it_happened, reverse=True)     # newest first
 
     oldest_kept = today - timedelta(days=settings.RETENTION_DAYS)
     in_custody = FoundItem.objects.filter(status=FoundItem.Status.IN_CUSTODY)

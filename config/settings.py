@@ -23,7 +23,13 @@ def env_bool(name, default=False):
 
 
 def env_list(name, default=''):
-    return [part.strip() for part in env(name, default).split(',') if part.strip()]
+    """Turns 'a, b, c' from the .env file into the list ['a', 'b', 'c']."""
+    result = []
+    for part in env(name, default).split(','):
+        part = part.strip()
+        if part:                      # skip empty bits, e.g. after a trailing comma
+            result.append(part)
+    return result
 
 
 # ---------------------------------------------------------------- core

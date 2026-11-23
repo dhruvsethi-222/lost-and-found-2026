@@ -17,8 +17,11 @@ class DateInput(forms.DateInput):
 
 def set_first_choice(field, text):
     """Replaces Django's '---------' at the top of a dropdown with e.g. 'Choose a category'."""
-    real_choices = [choice for choice in field.choices if choice[0] != '']
-    field.choices = [('', text)] + real_choices
+    new_choices = [('', text)]
+    for choice in field.choices:
+        if choice[0] != '':                # skip Django's own empty choice
+            new_choices.append(choice)
+    field.choices = new_choices
 
 
 class ItemReportForm(forms.ModelForm):
@@ -63,7 +66,7 @@ class FoundItemForm(forms.ModelForm):
         help_texts = {'handed_in_report': 'Optional. Choosing the report marks it as handed in.'}
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         set_first_choice(self.fields['category'], 'Choose a category')
         set_first_choice(self.fields['place'], 'Choose a place')
         self.fields['date_found'].widget.attrs['max'] = timezone.localdate().isoformat()
@@ -92,7 +95,7 @@ class VerificationDetailForm(forms.ModelForm):
                    'contents': forms.Textarea(attrs={'rows': 2})}
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
 
     def clean(self):
@@ -113,5 +116,5 @@ class DisposeForm(forms.Form):
                              widget=forms.Textarea(attrs={'rows': 2, 'placeholder': 'e.g. donated to the campus charity drive'}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)

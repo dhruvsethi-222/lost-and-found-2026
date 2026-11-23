@@ -89,7 +89,7 @@ class StudentRegistrationForm(RegistrationForm):
         labels = {'name': 'Full name', 'email': 'Student email', 'admission_no': 'Admission number'}
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         self.fields['admission_no'].required = True
         # Hints for the browser, so most mistakes are caught before the form is sent.
         self.fields['admission_no'].widget.attrs.update({
@@ -120,7 +120,7 @@ class StaffRegistrationForm(RegistrationForm):
         labels = {'name': 'Full name', 'email': 'Staff email', 'staff_no': 'Staff ID'}
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         self.fields['staff_no'].required = True
         self.fields['department'].required = True
         self.fields['staff_no'].widget.attrs.update({
@@ -152,7 +152,7 @@ class CampusLoginForm(AuthenticationForm):
                                 widget=forms.EmailInput(attrs={'autofocus': True, 'autocomplete': 'email'}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
 
     def confirm_login_allowed(self, user):
@@ -171,7 +171,7 @@ class DeskLoginForm(AuthenticationForm):
                                 widget=forms.EmailInput(attrs={'autofocus': True, 'autocomplete': 'email'}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
 
     def confirm_login_allowed(self, user):
@@ -187,5 +187,5 @@ class ResendVerificationForm(forms.Form):
     email = forms.EmailField(label='Your campus email')
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)

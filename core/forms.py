@@ -32,7 +32,7 @@ class ReportPeriodForm(forms.Form):
     date_to = forms.DateField(label='To', widget=DateBox(format='%Y-%m-%d'))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
 
     def clean(self):

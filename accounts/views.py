@@ -119,6 +119,7 @@ def account_list(request):
     accounts = User.objects.filter(role__in=[Role.STUDENT, Role.STAFF]).order_by('name')
     words = request.GET.get('q', '').strip()
     if words:
+        # Q(...) | Q(...) means "this OR that": the words can be in the name, email or ID number
         accounts = accounts.filter(Q(name__icontains=words) | Q(email__icontains=words)
                                    | Q(admission_no__icontains=words) | Q(staff_no__icontains=words))
     role = request.GET.get('role', '')

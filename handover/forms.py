@@ -12,7 +12,7 @@ class HandOverForm(forms.Form):
         help_text='Type the number on the student or staff ID card the collector shows you.')
 
     def __init__(self, *args, claimant=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         self.claimant = claimant            # the person whose claim was approved
         style_form(self)
 

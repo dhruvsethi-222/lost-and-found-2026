@@ -9,5 +9,5 @@ class PostForm(forms.Form):
                            widget=forms.Textarea(attrs={'rows': 2, 'placeholder': 'e.g. Has anyone seen a blue umbrella near the library?'}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)

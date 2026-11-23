@@ -14,5 +14,5 @@ class SearchForm(forms.Form):
                               choices=[('', 'Any place')] + list(Place.choices))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)

@@ -13,7 +13,7 @@ class ClaimForm(forms.Form):
         help_text='Give details only the owner would know. A security officer compares them with the item.')
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
 
 
@@ -24,7 +24,7 @@ class MoreDetailsForm(forms.Form):
                               widget=forms.Textarea(attrs={'rows': 3}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
 
 
@@ -35,5 +35,5 @@ class DecisionForm(forms.Form):
                              widget=forms.Textarea(attrs={'rows': 2, 'placeholder': 'e.g. details match'}))
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # let Django build the form as usual
         style_form(self)
