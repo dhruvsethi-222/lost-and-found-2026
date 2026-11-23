@@ -12,7 +12,7 @@ How pages are protected (NFR-01), used the same way in every views.py:
   2. The first lines of the view check the role. A wrong role raises
      PermissionDenied, which shows the "Access denied" page (templates/403.html).
 """
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -84,10 +84,23 @@ def desk(request):
         'expired_items': FoundItem.objects.filter(status=in_custody, date_found__lt=oldest_kept).count(),
         'waiting_collection': FoundItem.objects.filter(status=FoundItem.Status.CLAIMED).count(),
         'in_custody': FoundItem.objects.filter(status=in_custody).count(),
-        'recorded_today': FoundItem.objects.filter(created_at__date=timezone.localdate()).count(),
+        'recorded_today': FoundItem.objects.filter(created_at__range=period(timezone.localdate())).count(),
         'latest_reports': ItemReport.objects.select_related('user')[:5],
     }
     return render(request, 'core/desk.html', context)
+
+
+def period(first_day, last_day=None):
+    """
+    Turns days into a (start, end) pair of times: from 00:00 on first_day to the last moment of last_day,
+    in the campus time zone. Used as  created_at__range=period(day1, day2).
+    Comparing times this way works the same on SQLite and MySQL (MySQL's __date lookups would need
+    extra time-zone tables installed in the database).
+    """
+    last_day = last_day or first_day
+    start = timezone.make_aware(datetime.combine(first_day, time.min))
+    end = timezone.make_aware(datetime.combine(last_day, time.max))
+    return start, end
 
 
 def top_five(reports, field, choices):
@@ -120,11 +133,12 @@ def reports(request):
         date_to = today
 
     # Everything below counts only what happened between date_from and date_to (both days included).
-    received = FoundItem.objects.filter(created_at__date__range=(date_from, date_to))
-    hand_overs = HandOver.objects.filter(date__date__range=(date_from, date_to)).select_related(
+    chosen = period(date_from, date_to)
+    received = FoundItem.objects.filter(created_at__range=chosen)
+    hand_overs = HandOver.objects.filter(date__range=chosen).select_related(
         'claim__user', 'claim__found_item', 'released_by')
-    disposed = FoundItem.objects.filter(disposed_at__date__range=(date_from, date_to)).select_related('disposed_by')
-    decisions = Claim.objects.filter(decided_at__date__range=(date_from, date_to)).select_related(
+    disposed = FoundItem.objects.filter(disposed_at__range=chosen).select_related('disposed_by')
+    decisions = Claim.objects.filter(decided_at__range=chosen).select_related(
         'user', 'found_item', 'decided_by')
     lost_reports = ItemReport.objects.filter(type='lost', date__range=(date_from, date_to))
 

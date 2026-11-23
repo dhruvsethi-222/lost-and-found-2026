@@ -1,6 +1,6 @@
 """Tests for the shared pages, the Admin's reports and the backup."""
 import tempfile
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from django.core.management import call_command
@@ -11,6 +11,7 @@ from django.utils import timezone
 from accounts.models import User
 from claims.models import Claim
 from core.testing import make_admin, make_student
+from core.views import period
 from handover.models import HandOver
 from items.models import FoundItem, ItemReport
 
@@ -103,6 +104,14 @@ class ReportsTests(TestCase):
         page = self.client.get(reverse('core:reports'), {'date_from': today.isoformat(),
                                                          'date_to': (today - timedelta(days=3)).isoformat()})
         self.assertContains(page, 'must be on or before')
+
+    def test_AD_R1_a_period_covers_whole_days_in_campus_time(self):
+        # 23:30 on the last day is inside the period; 00:10 the next morning is not.
+        start, end = period(date(2026, 11, 1), date(2026, 11, 2))
+        late_evening = timezone.make_aware(datetime(2026, 11, 2, 23, 30))
+        next_morning = timezone.make_aware(datetime(2026, 11, 3, 0, 10))
+        self.assertTrue(start <= late_evening <= end)
+        self.assertFalse(start <= next_morning <= end)
 
     def test_NFR01_students_cannot_see_the_reports(self):
         self.client.force_login(self.student)
