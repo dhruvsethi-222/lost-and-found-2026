@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import Admin, Role, Staff, Student, User
@@ -48,11 +48,20 @@ class RegistrationTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)                          # SF-O1 / EM-P1
         self.assertEqual(mail.outbox[0].to, ['otieno@campus.ac.ke'])
 
+    @override_settings(STUDENT_EMAIL_DOMAINS=['students.campus.ac.ke'], STAFF_EMAIL_DOMAINS=['campus.ac.ke'])
     def test_NFR01_only_campus_emails_can_register(self):
         for email in ('jane@gmail.com', 'jane@campus.ac.ke'):     # outside, and a staff address on the student form
             response = self.client.post(reverse('accounts:register'), {**STUDENT_FORM, 'email': email})
             self.assertContains(response, 'Use your campus email')
         self.assertFalse(User.objects.exists())
+
+    @override_settings(STUDENT_EMAIL_DOMAINS=[], STAFF_EMAIL_DOMAINS=[])
+    def test_NFR01_with_no_endings_set_any_email_can_sign_up_and_must_verify(self):
+        response = self.client.post(reverse('accounts:register'), {**STUDENT_FORM, 'email': 'jane.wanjiru@gmail.com'})
+        self.assertRedirects(response, reverse('accounts:verification_sent'))
+        student = User.objects.get(email='jane.wanjiru@gmail.com')
+        self.assertFalse(student.is_verified)                          # still has to open the link
+        self.assertEqual(mail.outbox[0].to, ['jane.wanjiru@gmail.com'])
 
     def test_NFR03_admission_number_must_be_digits(self):
         response = self.client.post(reverse('accounts:register'), {**STUDENT_FORM, 'admission_no': 'ABC12'})

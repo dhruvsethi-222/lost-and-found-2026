@@ -21,16 +21,24 @@ from .models import Role, User
 
 def check_campus_email(email, allowed_endings):
     """
-    NFR-01: only campus emails may sign up.
+    NFR-01: only campus emails may sign up - if campus email endings are set in the .env file.
+    If no endings are set (an empty list), any email may sign up; it must still be verified.
     Returns the email in small letters, or raises an error to show under the field.
     """
     email = email.strip().lower()
     ending = email.split('@')[-1]                 # the part after the @
-    if ending not in allowed_endings:
+    if allowed_endings and ending not in allowed_endings:
         raise ValidationError(f'Use your campus email ending in @{allowed_endings[0]}.')
     if User.objects.filter(email=email).exists():
         raise ValidationError('An account with this email already exists. Log in instead.')
     return email
+
+
+def example_email(allowed_endings):
+    """The grey example shown inside the email box."""
+    if allowed_endings:
+        return 'name@' + allowed_endings[0]
+    return 'name@example.com'
 
 
 class RegistrationForm(forms.ModelForm):
@@ -96,7 +104,7 @@ class StudentRegistrationForm(RegistrationForm):
             'pattern': r'\d{4,8}', 'inputmode': 'numeric',
             'title': 'Digits only, for example 227034', 'placeholder': 'e.g. 227034'})
         self.fields['name'].widget.attrs['placeholder'] = 'e.g. Jane Wanjiru'
-        self.fields['email'].widget.attrs['placeholder'] = f'name@{settings.STUDENT_EMAIL_DOMAINS[0]}'
+        self.fields['email'].widget.attrs['placeholder'] = example_email(settings.STUDENT_EMAIL_DOMAINS)
         style_form(self)
 
     def clean_email(self):
@@ -126,7 +134,7 @@ class StaffRegistrationForm(RegistrationForm):
         self.fields['staff_no'].widget.attrs.update({
             'pattern': r'[A-Za-z0-9\-]{2,20}',
             'title': 'Letters and numbers, for example S1043', 'placeholder': 'e.g. S1043'})
-        self.fields['email'].widget.attrs['placeholder'] = f'name@{settings.STAFF_EMAIL_DOMAINS[0]}'
+        self.fields['email'].widget.attrs['placeholder'] = example_email(settings.STAFF_EMAIL_DOMAINS)
         style_form(self)
 
     def clean_email(self):
