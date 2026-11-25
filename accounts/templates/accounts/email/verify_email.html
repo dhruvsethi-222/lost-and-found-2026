@@ -1,0 +1,29 @@
+<!-- The verification email with a green button (EM-P1).
+     Email programs such as Gmail ignore CSS files, so every style is written inside the tags. -->
+<div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #222;">
+
+  <!-- green title bar, the same colour as the site -->
+  <div style="background: #1e6b3a; color: white; padding: 16px 24px; font-size: 20px; font-weight: bold;">
+    Lost &amp; Found
+  </div>
+
+  <div style="padding: 24px; border: 1px solid #ddd; border-top: none;">
+    <p>Hello {{ user.name }},</p>
+    <p>Thank you for signing up to the campus Lost and Found system.
+       Press the button to confirm your email address.</p>
+
+    <!-- the button is just a link that looks like a button -->
+    <p style="text-align: center; margin: 28px 0;">
+      <a href="{{ link }}"
+         style="background: #1e6b3a; color: white; padding: 12px 28px; text-decoration: none;
+                border-radius: 6px; font-weight: bold; display: inline-block;">
+        Confirm my email
+      </a>
+    </p>
+
+    <p style="font-size: 13px; color: #666;">The button works for 3 days.
+       If you did not sign up, you can ignore this email.</p>
+  </div>
+
+  <p style="font-size: 12px; color: #999; text-align: center;">Lost and Found system</p>
+</div>

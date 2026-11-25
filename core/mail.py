@@ -30,13 +30,14 @@ def sends_real_emails():
     return 'anymail' in settings.EMAIL_BACKEND or 'smtp' in settings.EMAIL_BACKEND
 
 
-def send_email(subject, text, to_address):
+def send_email(subject, text, to_address, html=None):
     """Sends the email. Returns True when it was sent, and False when it could not be sent."""
     connection = None                                     # None = the service chosen in .env
     if is_made_up(to_address) and sends_real_emails():
         connection = get_connection('django.core.mail.backends.console.EmailBackend')   # print it instead
     try:
-        send_mail(subject, text, None, [to_address], connection=connection)   # None = DEFAULT_FROM_EMAIL
+        # html is the version with a button; email programs that cannot show it use the text
+        send_mail(subject, text, None, [to_address], connection=connection, html_message=html)   # None = DEFAULT_FROM_EMAIL
         return True
     except Exception as error:                            # any problem in the email service
         logger.warning('Email "%s" to %s could not be sent: %s', subject, to_address, error)

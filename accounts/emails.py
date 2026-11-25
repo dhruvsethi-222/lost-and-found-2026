@@ -26,8 +26,9 @@ def verification_link(request, user):
 
 def send_verification_email(request, user):
     """Returns True when the email was sent, False when it could not be sent."""
-    # 1. fill in the email text (templates/accounts/email/verify_email.txt)
-    text = render_to_string('accounts/email/verify_email.txt',
-                            {'user': user, 'link': verification_link(request, user)})
-    # 2. hand it to the email service
-    return send_email('Confirm your Lost and Found account', text, user.email)
+    details = {'user': user, 'link': verification_link(request, user)}
+    # 1. fill in the two versions of the email: plain text, and the one with the button
+    text = render_to_string('accounts/email/verify_email.txt', details)
+    html = render_to_string('accounts/email/verify_email.html', details)
+    # 2. hand both to the email service
+    return send_email('Confirm your Lost and Found account', text, user.email, html)

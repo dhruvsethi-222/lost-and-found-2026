@@ -43,6 +43,13 @@ class RegistrationTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)                          # ST-O1 / EM-P1
         self.assertIn('/accounts/verify/', mail.outbox[0].body)
 
+    def test_verification_email_has_a_button(self):
+        self.client.post(reverse('accounts:register'), STUDENT_FORM)
+        html, kind = mail.outbox[0].alternatives[0]                    # the version with the button
+        self.assertEqual(kind, 'text/html')
+        self.assertIn('Confirm my email', html)
+        self.assertIn('/accounts/verify/', html)                       # the button opens the link
+
     def test_SY_P1_password_is_stored_only_as_a_hash(self):
         self.client.post(reverse('accounts:register'), STUDENT_FORM)
         user = User.objects.get(email='jane@strathmore.edu')
