@@ -79,6 +79,25 @@ set both lines to `strathmore.edu`.
 Open http://127.0.0.1:8000. Without Brevo set up, verification emails are printed in the terminal:
 copy the link from there into the browser.
 
+## Fill the site with sample items
+
+To make the site look like it is in use, add made-up sample data (on SQLite or MySQL):
+
+```
+python manage.py add_sample_data
+```
+
+It adds 10 sample Students and Staff (emails start with `sample.`, password `Campus-Pass-2026`),
+34 found items with pictures, 25 reports, claims in every status, hand-overs, disposals, posts and
+the matches. It sends no emails and does not change anything already there. To take it all out again:
+
+```
+python manage.py add_sample_data --remove
+```
+
+With Brevo switched on, the demo and sample accounts never get real emails (a real person could own
+the same address): their emails are printed in the window running the site.
+
 ## Use MySQL on your laptop
 
 1. Install MySQL Server and MySQL Workbench from https://dev.mysql.com/downloads/
