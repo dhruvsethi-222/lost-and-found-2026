@@ -11,7 +11,7 @@
   <div class="col-md-7">
     <dl class="row">
       <dt class="col-sm-4">Description</dt><dd class="col-sm-8">{{ item.description }}</dd>
-      <dt class="col-sm-4">Where found</dt><dd class="col-sm-8">{{ item.get_place_display }}</dd>
+      <dt class="col-sm-4">Where found</dt><dd class="col-sm-8">{{ item.place_label }}</dd>
       <dt class="col-sm-4">Date found</dt><dd class="col-sm-8">{{ item.date_found|date:"j F Y" }}</dd>
       <dt class="col-sm-4">Recorded by</dt><dd class="col-sm-8">{{ item.recorded_by.name }}, {{ item.created_at|date:"j M Y, H:i" }}</dd>
       {% if item.handed_in_report %}
@@ -57,7 +57,7 @@
           {% for match in matches %}
             <tr>
               <td>{{ match.rank }}</td>
-              <td>{{ match.report.get_place_display }}, {{ match.report.date|date:"j M Y" }}<br><span class="small text-muted">{{ match.report.description|truncatechars:70 }}</span></td>
+              <td>{{ match.report.place_label }}, {{ match.report.date|date:"j M Y" }}<br><span class="small text-muted">{{ match.report.description|truncatechars:70 }}</span></td>
               <td>{{ match.report.user.name }}<br><span class="small text-muted">{{ match.report.user.email }}</span></td>
               <td>{{ match.score|floatformat:0 }} / 100</td>
             </tr>

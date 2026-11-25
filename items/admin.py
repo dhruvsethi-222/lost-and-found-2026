@@ -13,14 +13,14 @@ class VerificationDetailInline(admin.StackedInline):
 
 @admin.register(FoundItem)
 class FoundItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'category', 'place', 'date_found', 'status', 'recorded_by')
+    list_display = ('id', 'category', 'place', 'place_other', 'date_found', 'status', 'recorded_by')
     list_filter = ('status', 'category', 'place')
     inlines = [VerificationDetailInline]
 
 
 @admin.register(ItemReport)
 class ItemReportAdmin(admin.ModelAdmin):
-    list_display = ('id', 'type', 'category', 'place', 'date', 'user')
+    list_display = ('id', 'type', 'category', 'place', 'place_other', 'date', 'user')
     list_filter = ('type', 'category', 'place')
     # The report photo is private: it is not edited here, only opened through the protected page.
     exclude = ('photo',)

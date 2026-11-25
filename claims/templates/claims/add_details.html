@@ -5,7 +5,7 @@
   <p><a href="{% url 'core:my_page' %}">&larr; Back to My page</a></p>
   <h1 class="h3 mb-3">Add more details to your claim</h1>
 
-  <p><strong>{{ claim.found_item.get_category_display }}</strong> &middot; {{ claim.found_item.get_place_display }}</p>
+  <p><strong>{{ claim.found_item.get_category_display }}</strong> &middot; {{ claim.found_item.place_label }}</p>
   <div class="tip"><strong>The security officer asked:</strong> {{ claim.reason }}</div>
 
   <form method="post" data-validate>

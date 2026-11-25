@@ -27,6 +27,10 @@
       <div class="col-sm-6">{% include 'includes/field.html' with field=form.date %}</div>
       <div class="col-sm-6">{% include 'includes/field.html' with field=form.place %}</div>
     </div>
+    {# Shown only when "Other" is chosen as the place (see forms.js). #}
+    <div data-other-place-for="{{ form.place.id_for_label }}">
+      {% include 'includes/field.html' with field=form.place_other %}
+    </div>
 
     {% include 'includes/field.html' with field=form.photo %}
     <button type="submit" class="btn btn-success w-100">Submit report</button>

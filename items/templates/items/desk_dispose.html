@@ -6,7 +6,7 @@
   <h1 class="h3 mb-3">Dispose of an expired item</h1>
 
   <div class="tip">
-    <strong>{{ item.get_category_display }}</strong> &middot; {{ item.get_place_display }} &middot; found {{ item.date_found|date:"j M Y" }}
+    <strong>{{ item.get_category_display }}</strong> &middot; {{ item.place_label }} &middot; found {{ item.date_found|date:"j M Y" }}
     <br><span class="small">{{ item.description }}</span>
     <br><span class="small">Kept until {{ item.retention_ends|date:"j M Y" }}.</span>
   </div>

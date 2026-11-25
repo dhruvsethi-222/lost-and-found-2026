@@ -37,13 +37,13 @@
   <div class="col-md-8">
     <dl class="row mb-2">
       <dt class="col-sm-4">The item</dt><dd class="col-sm-8">{{ item.description }}</dd>
-      <dt class="col-sm-4">Where found</dt><dd class="col-sm-8">{{ item.get_place_display }}, {{ item.date_found|date:"j M Y" }}</dd>
+      <dt class="col-sm-4">Where found</dt><dd class="col-sm-8">{{ item.place_label }}, {{ item.date_found|date:"j M Y" }}</dd>
       <dt class="col-sm-4">Item status</dt><dd class="col-sm-8">{{ item.get_status_display }}</dd>
     </dl>
     {# AD-O2: the ranked match helps the decision #}
     {% if claimant_match %}
       <p class="tip mb-2">This claimant reported a lost {{ claimant_match.report.get_category_display|lower }}
-        ({{ claimant_match.report.get_place_display }}, {{ claimant_match.report.date|date:"j M Y" }}:
+        ({{ claimant_match.report.place_label }}, {{ claimant_match.report.date|date:"j M Y" }}:
         "{{ claimant_match.report.description|truncatechars:80 }}").
         It matches this item: score {{ claimant_match.score|floatformat:0 }} out of 100, rank {{ claimant_match.rank }}.</p>
     {% else %}

@@ -29,6 +29,17 @@ def photo_path(instance, filename):
     return f'found_items/{uuid4().hex}{Path(filename).suffix.lower()}'
 
 
+def place_text(place_display, place, place_other):
+    """
+    What to show for a place: the dropdown choice, e.g. 'Library',
+    or the typed location when "Other" was chosen, e.g. 'Outside Lecture Hall B'.
+    Older records saved as "Other" without a typed location still show 'Other'.
+    """
+    if place == Place.OTHER and place_other:
+        return place_other
+    return place_display
+
+
 def report_photo_storage():
     return FileSystemStorage(location=settings.BASE_DIR / 'report_photos')
 
@@ -50,6 +61,8 @@ class ItemReport(models.Model):
     description = models.TextField(max_length=500)
     date = models.DateField(validators=[not_in_future])
     place = models.CharField(max_length=80, choices=Place.choices)
+    # The typed location when the place is "Other", e.g. "Outside Lecture Hall B". Empty for the other places.
+    place_other = models.CharField('Specify the location', max_length=500, blank=True)
     photo = models.ImageField(upload_to=report_photo_path, storage=report_photo_storage, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -60,8 +73,13 @@ class ItemReport(models.Model):
 
     def __str__(self):
         # Also the text shown in the "handed in by" dropdown on the Record found item page.
-        return (f'{self.kind_label}: {self.get_category_display()}, {self.get_place_display()}, '
+        return (f'{self.kind_label}: {self.get_category_display()}, {self.place_label}, '
                 f'{self.date:%d %b %Y}, reported by {self.user.name}')
+
+    @property
+    def place_label(self):
+        """The place to show on screen, with the typed location for "Other"."""
+        return place_text(self.get_place_display(), self.place, self.place_other)
 
     @property
     def kind_label(self):
@@ -96,6 +114,8 @@ class FoundItem(models.Model):
     category = models.CharField(max_length=40, choices=Category.choices)
     description = models.TextField(max_length=500)
     place = models.CharField(max_length=80, choices=Place.choices)
+    # The typed location when the place is "Other". Empty for the other places.
+    place_other = models.CharField('Specify the location', max_length=500, blank=True)
     date_found = models.DateField(validators=[not_in_future])
     photo = models.ImageField(upload_to=photo_path)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.IN_CUSTODY)
@@ -117,7 +137,12 @@ class FoundItem(models.Model):
                    models.Index(fields=['status'])]
 
     def __str__(self):
-        return f'{self.get_category_display()} found at {self.get_place_display()} on {self.date_found:%d %b %Y}'
+        return f'{self.get_category_display()} found at {self.place_label} on {self.date_found:%d %b %Y}'
+
+    @property
+    def place_label(self):
+        """The place to show on screen, with the typed location for "Other"."""
+        return place_text(self.get_place_display(), self.place, self.place_other)
 
     @property
     def retention_ends(self):

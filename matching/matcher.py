@@ -18,6 +18,7 @@ So the same category alone is not enough: the place, the date or the words must 
 """
 from django.conf import settings
 
+from items.choices import Place
 from items.models import FoundItem, ItemReport
 
 from .emails import send_match_alert
@@ -37,6 +38,22 @@ def keywords(text):
     return words
 
 
+def same_place(report, found_item):
+    """
+    Same place? The dropdown choices must be the same.
+    When both chose "Other", the typed locations must also be the same,
+    after removing spaces at both ends and ignoring capital letters.
+    Choosing "Other" on both forms is not enough on its own.
+    """
+    if report.place != found_item.place:
+        return False
+    if report.place != Place.OTHER:
+        return True
+    mine = report.place_other.strip().lower()
+    theirs = found_item.place_other.strip().lower()
+    return mine != '' and mine == theirs
+
+
 def score_pair(report, found_item):
     """SY-P2: how alike are a lost report and a found item? Returns 0 to 100."""
     # 1. Category: must be the same.
@@ -45,7 +62,7 @@ def score_pair(report, found_item):
     score = 40
 
     # 2. Place
-    if report.place == found_item.place:
+    if same_place(report, found_item):
         score += 20
 
     # 3. Date: how many days between the day it was lost and the day it was found

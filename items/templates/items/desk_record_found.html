@@ -8,7 +8,14 @@
   <form method="post" enctype="multipart/form-data" data-validate>
     {% csrf_token %}
     {% include 'includes/form_errors.html' with form=item_form %}
-    {% for field in item_form %}{% include 'includes/field.html' %}{% endfor %}
+    {% for field in item_form %}
+      {% if field.name == 'place_other' %}
+        {# Shown only when "Other" is chosen as the place (see forms.js). #}
+        <div data-other-place-for="{{ item_form.place.id_for_label }}">{% include 'includes/field.html' %}</div>
+      {% else %}
+        {% include 'includes/field.html' %}
+      {% endif %}
+    {% endfor %}
 
     <fieldset class="private-box mb-3">
       <legend>&#128274; Private details (Admin only)</legend>

@@ -15,7 +15,24 @@ function explain(field) {
   return field.validationMessage;
 }
 
+// "Other" place: the "Specify the location" box is shown, and needed, only when "Other" is chosen.
+// For every other place it is hidden (the server also empties it, see items/forms.py).
+function setUpOtherPlace(box) {
+  const place = document.getElementById(box.dataset.otherPlaceFor);
+  const typed = box.querySelector('input, textarea');
+  if (!place || !typed) return;
+  const update = () => {
+    const isOther = place.value === 'other';
+    box.hidden = !isOther;
+    typed.required = isOther;
+  };
+  place.addEventListener('change', update);
+  update();                                  // also right away, e.g. after the server sent the form back
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-other-place-for]').forEach(setUpOtherPlace);
+
   document.querySelectorAll('form[data-validate]').forEach((form) => {
     form.setAttribute('novalidate', '');      // show our messages instead of the browser's pop-ups
 

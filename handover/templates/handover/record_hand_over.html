@@ -7,7 +7,7 @@
 
   <div class="tip">
     <strong>{{ item.get_category_display }}</strong> &rarr; {{ claim.user.name }} (approved {{ claim.decided_at|date:"j M Y" }})
-    <br><span class="small">{{ item.description }} &middot; found at {{ item.get_place_display }}</span>
+    <br><span class="small">{{ item.description }} &middot; found at {{ item.place_label }}</span>
     <br><span class="small">Ask for the {% if claim.user.admission_no %}student ID card: admission number {{ claim.user.admission_no }}{% else %}staff ID card: staff ID {{ claim.user.staff_no }}{% endif %}.</span>
   </div>
 

@@ -15,7 +15,7 @@
           {% for item in expired %}
             <tr>
               <td>{{ item.get_category_display }}<br><span class="small text-muted">{{ item.description|truncatechars:40 }}</span></td>
-              <td>{{ item.get_place_display }}</td>
+              <td>{{ item.place_label }}</td>
               <td>{{ item.date_found|date:"j M Y" }}</td>
               <td>{{ item.retention_ends|date:"j M Y" }}</td>
               <td><a class="btn btn-sm btn-success" href="{% url 'items:desk_dispose' item.pk %}">Dispose</a></td>
@@ -35,7 +35,7 @@
     <ul class="list-group medium ms-0">
       {% for item in expiring_soon %}
         <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
-          <span>{{ item.get_category_display }} &middot; {{ item.get_place_display }} &middot; kept until {{ item.retention_ends|date:"j M Y" }}</span>
+          <span>{{ item.get_category_display }} &middot; {{ item.place_label }} &middot; kept until {{ item.retention_ends|date:"j M Y" }}</span>
           <a class="btn btn-sm btn-outline-success" href="{% url 'items:desk_found_detail' item.pk %}">Open</a>
         </li>
       {% endfor %}

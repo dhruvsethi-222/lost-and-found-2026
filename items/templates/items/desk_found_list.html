@@ -26,7 +26,7 @@
           <tr>
             <td><img class="thumb" src="{{ item.photo.url }}" alt="Photo of the {{ item.get_category_display|lower }}"></td>
             <td>{{ item.get_category_display }}<br><span class="small text-muted">{{ item.description|truncatechars:50 }}</span></td>
-            <td>{{ item.get_place_display }}</td>
+            <td>{{ item.place_label }}</td>
             <td>{{ item.date_found|date:"j M Y" }}</td>
             <td>{{ item.recorded_by.name }}</td>
             <td><a class="btn btn-sm btn-outline-success" href="{% url 'items:desk_found_detail' item.pk %}">Open</a></td>

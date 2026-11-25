@@ -14,7 +14,7 @@
           <tr>
             <td>{{ match.found_item.get_category_display }}<br><span class="small text-muted">{{ match.found_item.description|truncatechars:40 }}</span></td>
             <td>{{ match.rank }}</td>
-            <td>{{ match.report.get_place_display }}, {{ match.report.date|date:"j M Y" }}<br><span class="small text-muted">{{ match.report.description|truncatechars:50 }}</span></td>
+            <td>{{ match.report.place_label }}, {{ match.report.date|date:"j M Y" }}<br><span class="small text-muted">{{ match.report.description|truncatechars:50 }}</span></td>
             <td>{{ match.report.user.name }}</td>
             <td>{{ match.score|floatformat:0 }}</td>
             <td><a class="btn btn-sm btn-outline-success" href="{% url 'items:desk_found_detail' match.found_item.pk %}">Open item</a></td>

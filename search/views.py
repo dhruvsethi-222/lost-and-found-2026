@@ -20,7 +20,7 @@ from items.models import FoundItem
 from .forms import SearchForm
 
 # The only columns this page is allowed to read.
-PUBLIC_FIELDS = ['id', 'category', 'description', 'place', 'date_found']
+PUBLIC_FIELDS = ['id', 'category', 'description', 'place', 'place_other', 'date_found']
 
 
 def codes_with_word(choices, word):
@@ -45,14 +45,16 @@ def search_items(request):
 
     form = SearchForm(request.GET or None)
     if form.is_valid():
-        # 1. Every word typed must be in the description, the category or the place.
+        # 1. Every word typed must be in the description, the category, the place,
+        #    or the typed location of an "Other" place (e.g. "hall" finds "Outside Lecture Hall B").
         for word in form.cleaned_data['q'].lower().split():
             if len(word) < 3:                 # skip short words like "a", "my", "in"
                 continue
             # Q(...) | Q(...) means "this OR that"
             items = items.filter(Q(description__icontains=word)
                                  | Q(category__in=codes_with_word(Category.choices, word))
-                                 | Q(place__in=codes_with_word(Place.choices, word)))
+                                 | Q(place__in=codes_with_word(Place.choices, word))
+                                 | Q(place_other__icontains=word))
         # 2. The two dropdowns narrow the list further.
         if form.cleaned_data['category']:
             items = items.filter(category=form.cleaned_data['category'])

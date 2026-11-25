@@ -14,7 +14,7 @@
   <div class="match-alert" role="status">
     <span>&#128276; <strong>A match was found for your lost {{ match.report.get_category_display|lower }}.</strong>
       <br><span class="small">At the security desk: {{ match.found_item.get_category_display }} &middot;
-      {{ match.found_item.get_place_display }} &middot; {{ match.found_item.date_found|date:"j M" }} &middot;
+      {{ match.found_item.place_label }} &middot; {{ match.found_item.date_found|date:"j M" }} &middot;
       {{ match.found_item.description|truncatechars:60 }}</span></span>
     <a class="btn btn-sm btn-success" href="{% url 'claims:new' match.found_item.pk %}">Claim</a>
   </div>
@@ -25,7 +25,7 @@
   <h2 id="my-claims" class="h5">My claims</h2>
   {% for claim in claims %}
     <div class="claim-card">
-      <p class="mb-2"><strong>{{ claim.found_item.get_category_display }}</strong> &middot; {{ claim.found_item.get_place_display }}
+      <p class="mb-2"><strong>{{ claim.found_item.get_category_display }}</strong> &middot; {{ claim.found_item.place_label }}
         &middot; claimed {{ claim.created_at|date:"j M Y" }}</p>
       <ol class="steps" aria-label="Claim progress">
         <li class="done">Submitted</li>
@@ -73,7 +73,7 @@
               <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span>
                 {% if report.photo %}<br><a href="{% url 'items:report_photo' report.pk %}">View report photo</a>{% endif %}
               </td>
-              <td>{{ report.get_place_display }}</td>
+              <td>{{ report.place_label }}</td>
               <td>{{ report.date|date:"j M Y" }}</td>
               <td>{{ report.status_label }}</td>
             </tr>

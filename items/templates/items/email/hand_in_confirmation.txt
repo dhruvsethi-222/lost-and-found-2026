@@ -1,6 +1,6 @@
 {% autoescape off %}Hello {{ report.user.name }},
 
-The security desk has received the {{ report.get_category_display|lower }} you reported as found at {{ report.get_place_display }} on {{ report.date|date:"j F Y" }}.
+The security desk has received the {{ report.get_category_display|lower }} you reported as found at {{ report.place_label }} on {{ report.date|date:"j F Y" }}.
 
 It was recorded on {{ found_item.created_at|date:"j F Y, H:i" }} and is now in safe custody. Thank you for handing it in.
 

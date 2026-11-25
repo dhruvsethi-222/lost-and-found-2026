@@ -9,6 +9,7 @@ from django.utils import timezone
 from accounts.models import Role
 from core.forms import style_form
 
+from .choices import Place
 from .models import FoundItem, ItemReport, VerificationDetail
 
 
@@ -26,12 +27,31 @@ def set_first_choice(field, text):
     field.choices = new_choices
 
 
+def check_other_place(form, cleaned):
+    """
+    "Other" place: the "Specify the location" box must be filled in (spaces alone do not count).
+    For any other place the box is emptied, so nothing typed there earlier is saved.
+    """
+    if cleaned.get('place') == Place.OTHER:
+        if not cleaned.get('place_other'):            # Django already removed spaces at both ends
+            form.add_error('place_other', 'Specify the location, e.g. Outside Lecture Hall B.')
+    else:
+        cleaned['place_other'] = ''
+    return cleaned
+
+
+def set_up_other_place(form):
+    """The "Specify the location" box: its example text and the hint under it."""
+    form.fields['place_other'].widget.attrs['placeholder'] = 'e.g. Outside Lecture Hall B'
+    form.fields['place_other'].help_text = 'Needed only when you choose "Other" as the place.'
+
+
 class ItemReportForm(forms.ModelForm):
     """Report an item (ST-I2, SF-I2): type, category, description, date and place."""
 
     class Meta:
         model = ItemReport
-        fields = ['type', 'category', 'description', 'date', 'place', 'photo']
+        fields = ['type', 'category', 'description', 'date', 'place', 'place_other', 'photo']
         widgets = {'type': forms.RadioSelect,
                    'date': DateInput(format='%Y-%m-%d'),
                    'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Colour, brand, marks'})}
@@ -53,7 +73,12 @@ class ItemReportForm(forms.ModelForm):
         self.fields['date'].widget.attrs['max'] = timezone.localdate().isoformat()
         self.fields['photo'].widget.attrs['accept'] = 'image/jpeg,image/png,image/webp'
         self.fields['photo'].help_text = f'Optional. JPEG, PNG or WebP, up to {settings.MAX_PHOTO_MB} MB.'
+        set_up_other_place(self)
         style_form(self)
+
+    def clean(self):
+        cleaned = super().clean()
+        return check_other_place(self, cleaned)
 
     def clean_photo(self):
         photo = self.cleaned_data['photo']
@@ -72,7 +97,7 @@ class FoundItemForm(forms.ModelForm):
 
     class Meta:
         model = FoundItem
-        fields = ['category', 'description', 'place', 'date_found', 'photo', 'handed_in_report']
+        fields = ['category', 'description', 'place', 'place_other', 'date_found', 'photo', 'handed_in_report']
         widgets = {'date_found': DateInput(format='%Y-%m-%d'),
                    'description': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Colour, brand'})}
         labels = {'category': 'What is it?', 'description': 'Describe it', 'place': 'Where was it found?',
@@ -90,7 +115,12 @@ class FoundItemForm(forms.ModelForm):
         self.fields['handed_in_report'].queryset = (
             ItemReport.objects.filter(type='found', received_items__isnull=True).select_related('user'))
         self.fields['handed_in_report'].empty_label = 'No, it was brought straight to the desk'
+        set_up_other_place(self)
         style_form(self)
+
+    def clean(self):
+        cleaned = super().clean()
+        return check_other_place(self, cleaned)
 
     def clean_photo(self):
         """Refuses photos that are too big. Django has already checked it is a real image."""

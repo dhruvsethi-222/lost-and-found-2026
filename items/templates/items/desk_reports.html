@@ -23,7 +23,7 @@
             <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span>
               {% if report.photo %}<br><a href="{% url 'items:report_photo' report.pk %}">View report photo</a>{% endif %}
             </td>
-            <td>{{ report.get_place_display }}</td>
+            <td>{{ report.place_label }}</td>
             <td>{{ report.date|date:"j M Y" }}</td>
             <td>{{ report.user.name }}<br><span class="small text-muted">{{ report.user.email }}</span></td>
             <td>{{ report.created_at|date:"j M, H:i" }}</td>
