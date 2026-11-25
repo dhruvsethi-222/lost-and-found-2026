@@ -99,7 +99,7 @@ class StudentRegistrationForm(RegistrationForm):
         # Hints for the browser, so most mistakes are caught before the form is sent.
         self.fields['admission_no'].widget.attrs.update({
             'pattern': r'\d{4,8}', 'inputmode': 'numeric',
-            'title': 'Digits only, for example 227034', 'placeholder': 'e.g. 227034'})
+            'title': 'Digits only, for example 100001', 'placeholder': 'e.g. 100001'})
         self.fields['name'].widget.attrs['placeholder'] = 'e.g. Jane Wanjiru'
         self.fields['email'].widget.attrs['placeholder'] = example_email(settings.STUDENT_EMAIL_DOMAINS)
         style_form(self)
@@ -110,7 +110,7 @@ class StudentRegistrationForm(RegistrationForm):
     def clean_admission_no(self):
         value = self.cleaned_data['admission_no'].strip()
         if not re.fullmatch(r'\d{4,8}', value):               # 4 to 8 digits
-            raise ValidationError('Use digits only, for example 227034.')
+            raise ValidationError('Use digits only, for example 100001.')
         return value
 
 

@@ -8,7 +8,7 @@ from core.forms import style_form
 class HandOverForm(forms.Form):
     collector_id = forms.CharField(
         label="Collector's ID number", max_length=30,
-        widget=forms.TextInput(attrs={'placeholder': 'e.g. 227034', 'autocomplete': 'off'}),
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. 100001', 'autocomplete': 'off'}),
         help_text='Type the number on the student or staff ID card the collector shows you.')
 
     def __init__(self, *args, claimant=None, **kwargs):
