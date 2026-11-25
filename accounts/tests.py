@@ -280,3 +280,42 @@ class ManageAccountsTests(TestCase):
             self.client.force_login(person)
             self.assertEqual(self.client.get(reverse('accounts:desk_accounts')).status_code, 403)
             self.assertEqual(self.client.post(reverse('accounts:desk_account_switch', args=[self.staff.pk])).status_code, 403)
+
+
+class DemoAccountMoveTests(TestCase):
+    """The demo accounts move to @strathmore.edu in place; anything unclear is left for a person to check."""
+
+    def test_demo_accounts_keep_their_id_password_and_reports(self):
+        from django.utils import timezone
+
+        from accounts.demo_accounts import move_demo_accounts
+        from items.models import ItemReport
+        jane = make_student(email='jane@students.campus.ac.ke', admission_no='100001')
+        grace = make_admin(email='achieng@campus.ac.ke')
+        report = ItemReport.objects.create(user=jane, type='lost', category='wallet', description='Black wallet',
+                                           date=timezone.localdate(), place='library')
+        self.assertEqual(move_demo_accounts(User), [])
+        jane.refresh_from_db()
+        grace.refresh_from_db()
+        self.assertEqual((jane.email, grace.email), ('jane@strathmore.edu', 'achieng@strathmore.edu'))
+        self.assertTrue(jane.check_password(PASSWORD))                        # same password
+        self.assertEqual(ItemReport.objects.get(pk=report.pk).user, jane)     # same report, still linked
+
+    def test_an_address_already_in_use_is_not_taken(self):
+        from accounts.demo_accounts import move_demo_accounts
+        old = make_student(email='jane@students.campus.ac.ke', admission_no='100001')
+        make_student(email='jane@strathmore.edu', admission_no='100009')
+        notes = move_demo_accounts(User)
+        old.refresh_from_db()
+        self.assertEqual(old.email, 'jane@students.campus.ac.ke')
+        self.assertIn('already used by another account', notes[0])
+
+    def test_an_account_that_is_not_the_demo_one_is_flagged_not_changed(self):
+        from accounts.demo_accounts import move_demo_accounts
+        someone = make_staff(email='otieno@campus.ac.ke')
+        someone.name = 'Someone Else'
+        someone.save()
+        notes = move_demo_accounts(User)
+        someone.refresh_from_db()
+        self.assertEqual(someone.email, 'otieno@campus.ac.ke')
+        self.assertIn('Check it by hand', notes[0])
