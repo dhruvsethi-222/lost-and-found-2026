@@ -1,8 +1,9 @@
 """The claim decision email (EM-P3)."""
 from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
+
+from core.mail import send_email
 
 
 def send_claim_decision(claim):
@@ -12,4 +13,4 @@ def send_claim_decision(claim):
         'link': settings.SITE_URL + reverse('core:my_page'),
         'collection_hours': settings.DESK_COLLECTION_HOURS,
     })
-    send_mail(f'Your claim: {claim.get_status_display().lower()}', text, None, [claim.user.email])
+    return send_email(f'Your claim: {claim.get_status_display().lower()}', text, claim.user.email)

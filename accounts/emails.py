@@ -8,11 +8,12 @@ Django uses for "forgot password" links). Nobody can guess it, and it stops
 working after 3 days (PASSWORD_RESET_TIMEOUT in settings.py).
 """
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+
+from core.mail import send_email
 
 
 def verification_link(request, user):
@@ -24,8 +25,9 @@ def verification_link(request, user):
 
 
 def send_verification_email(request, user):
+    """Returns True when the email was sent, False when it could not be sent."""
     # 1. fill in the email text (templates/accounts/email/verify_email.txt)
     text = render_to_string('accounts/email/verify_email.txt',
                             {'user': user, 'link': verification_link(request, user)})
     # 2. hand it to the email service
-    send_mail('Confirm your Lost and Found account', text, None, [user.email])
+    return send_email('Confirm your Lost and Found account', text, user.email)

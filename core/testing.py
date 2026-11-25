@@ -1,6 +1,7 @@
 """Small helpers shared by the tests: ready-made accounts and a tiny photo."""
 import io
 
+from django.core.mail.backends.base import BaseEmailBackend
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
@@ -30,3 +31,10 @@ def photo(name='wallet.png'):
     buffer = io.BytesIO()
     Image.new('RGB', (8, 8), (20, 20, 20)).save(buffer, format='PNG')
     return SimpleUploadedFile(name, buffer.getvalue(), content_type='image/png')
+
+
+class BrokenEmailBackend(BaseEmailBackend):
+    """An email service that always fails, like a laptop with no internet. Used by the email tests."""
+
+    def send_messages(self, email_messages):
+        raise OSError('No internet connection')

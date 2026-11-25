@@ -2,4 +2,5 @@ Django>=5.2,<5.3
 Pillow>=10.0
 python-dotenv>=1.0
 coverage>=7.0
+django-anymail[brevo]>=15.0   # sends the emails through the Brevo email API
 # On PythonAnywhere also run:  pip install mysqlclient

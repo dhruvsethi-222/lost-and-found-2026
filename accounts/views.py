@@ -43,7 +43,10 @@ def register(request, role):
         form = form_class(request.POST)
         if form.is_valid():
             user = form.save()                        # ST-S1 / SF-S1: saved, not yet verified
-            send_verification_email(request, user)    # ST-O1 / SF-O1
+            sent = send_verification_email(request, user)     # ST-O1 / SF-O1
+            if not sent:
+                messages.warning(request, 'Your account is made, but the verification email could not be sent just now. '
+                                          'Wait a minute, then press "send it again" below.')
             request.session['verify_email'] = user.email      # remembered for the next page
             return redirect('accounts:verification_sent')
     else:                                             # the page was just opened

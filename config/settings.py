@@ -172,9 +172,14 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ---------------------------------------------------------------- email
-# Laptop: emails are printed in the terminal instead of being sent.
-# Live: set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend and the account details.
+# Laptop: emails are printed in the window running the site instead of being sent.
+# Real emails with the free Brevo email API: in .env set EMAIL_BACKEND=anymail.backends.brevo.EmailBackend,
+# BREVO_API_KEY (from Brevo, SMTP & API, API keys) and DEFAULT_FROM_EMAIL (the sender confirmed in Brevo).
 EMAIL_BACKEND = env('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+ANYMAIL = {
+    'BREVO_API_KEY': env('BREVO_API_KEY', ''),   # secret: only in .env, never on GitHub
+    'REQUESTS_TIMEOUT': 10,                      # stop waiting for Brevo after 10 seconds
+}
 EMAIL_HOST = env('EMAIL_HOST', '')
 EMAIL_PORT = int(env('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', '')

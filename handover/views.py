@@ -65,8 +65,9 @@ def record_hand_over(request, claim_id):
                                                     collector_id=form.cleaned_data['collector_id'])   # AD-S4
                 item.status = FoundItem.Status.RETURNED                                               # AD-S5
                 item.save()
-            send_hand_over_receipt(hand_over)
             messages.success(request, f'Handed over to {claim.user.name}. The item is now Returned.')
+            if not send_hand_over_receipt(hand_over):
+                messages.warning(request, 'The receipt email could not be sent. The hand-over is saved.')
             return redirect('handover:list')
     else:
         form = HandOverForm(claimant=claim.user)

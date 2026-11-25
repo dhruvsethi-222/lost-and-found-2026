@@ -106,7 +106,8 @@ def record_found_item(request):
 
             # SF-O5: a Staff member logged this item first, so confirm the hand-in
             if item.handed_in_report and item.handed_in_report.user.role == Role.STAFF:
-                send_hand_in_confirmation(item)
+                if not send_hand_in_confirmation(item):
+                    messages.warning(request, 'The email telling the staff member that the item arrived could not be sent.')
 
             # SY-I1: the matching algorithm compares the new item with the lost reports
             matches_found = match_found_item(item)

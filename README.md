@@ -76,7 +76,7 @@ After getting a newer copy of the code, always run `python manage.py migrate` ag
 If `runserver` shows a warning about `STUDENT_EMAIL_DOMAINS` or `STAFF_EMAIL_DOMAINS`, open `.env` and
 set both lines to `strathmore.edu`.
 
-Open http://127.0.0.1:8000. Verification emails are printed in the terminal on a laptop:
+Open http://127.0.0.1:8000. Without Brevo set up, verification emails are printed in the terminal:
 copy the link from there into the browser.
 
 ## Use MySQL on your laptop
@@ -87,9 +87,26 @@ copy the link from there into the browser.
 4. In `.env`, remove the `#` from the six "MySQL on your laptop" lines.
 5. `python manage.py migrate` makes all the tables in MySQL. Then `python manage.py runserver`.
 
-## Verification email
+## Emails (verification link and notifications)
 
-For local testing, Django prints verification emails in the terminal running the site. Copy the verification link from that terminal into your browser. The external email API is planned. Until the provider is selected and configured, use the terminal for verification.
+Without any email settings, every email is printed in the window running the site. Copy the
+verification link from there into the browser.
+
+To send real emails, the system uses the free **Brevo** email API through the `django-anymail` library:
+
+1. In Brevo, add a sender (Senders, Domains & Dedicated IPs, then Senders) and confirm it with the code
+   Brevo emails you. Then create an API key (SMTP & API, then API keys).
+2. Run `pip install -r requirements.txt`, then open `.env` and add (the key stays in `.env`, never on GitHub):
+
+   ```
+   EMAIL_BACKEND=anymail.backends.brevo.EmailBackend
+   BREVO_API_KEY=xkeysib-your-key-here
+   DEFAULT_FROM_EMAIL=Lost and Found <the-sender-you-confirmed@gmail.com>
+   ```
+3. Test it: `python manage.py sendtestemail your.name@strathmore.edu`, then restart the site.
+
+If an email cannot be sent (no internet, a wrong key), the action is still saved, the page says the
+email was not sent, and the reason is printed in the window running the site.
 
 ## Run the tests
 

@@ -131,14 +131,18 @@ def verify_claim(request, claim_id):
                 closed_claims = approve_claim(claim, request.user, reason)
                 for closed_claim in closed_claims:            # tell the other claimants too
                     send_claim_decision(closed_claim)
-                messages.success(request, 'Claim approved. The claimant has been emailed to collect the item.')
+                note = 'Claim approved. The claimant has been emailed to collect the item.'
             elif decision == 'reject':
                 save_decision(claim, Claim.Status.REJECTED, request.user, reason)
-                messages.success(request, 'Claim rejected. The claimant has been emailed.')
+                note = 'Claim rejected. The claimant has been emailed.'
             else:
                 save_decision(claim, Claim.Status.MORE_EVIDENCE, request.user, reason)
-                messages.success(request, 'The claimant has been emailed and asked for more details.')
-            send_claim_decision(claim)                        # EM-P3
+                note = 'The claimant has been emailed and asked for more details.'
+            if send_claim_decision(claim):                    # EM-P3
+                messages.success(request, note)
+            else:
+                messages.warning(request, 'The decision is saved, but the email to the claimant could not be sent. '
+                                          'Tell the claimant in person, or check the internet and the email settings.')
             return redirect('claims:desk_list')
     else:
         form = DecisionForm()
