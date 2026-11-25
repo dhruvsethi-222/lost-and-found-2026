@@ -41,9 +41,9 @@ def check_other_place(form, cleaned):
 
 
 def set_up_other_place(form):
-    """The "Specify the location" box: its example text and the hint under it."""
+    """The "Specify the location" box: its example text, and a red * because it is needed whenever it shows."""
     form.fields['place_other'].widget.attrs['placeholder'] = 'e.g. Outside Lecture Hall B'
-    form.fields['place_other'].help_text = 'Needed only when you choose "Other" as the place.'
+    form.fields['place_other'].show_required_mark = True
 
 
 class ItemReportForm(forms.ModelForm):
