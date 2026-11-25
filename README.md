@@ -16,6 +16,18 @@ Returned, the owner gets a receipt), disposal of items past the 90-day retention
 details are deleted), Manage accounts (switch an account off or on, verify by hand), the Admin's reports
 with an audit log of every decision, hand-over and disposal, and posts and replies for Students and Staff.
 
+**Update (25 November 2026), with Jerry's changes:**
+- Sign-up for Students and Staff needs an email ending exactly in `@strathmore.edu`. The demo accounts
+  use that ending too. An existing database moves the five demo accounts in place when `migrate` runs.
+- Every text box people type into takes at most 500 characters: descriptions, posts and replies, the
+  first claim answer and each follow-up, decision and disposal reasons, search, and the private
+  serial number, marks and contents. The whole claim conversation is kept, so it can be longer.
+- A report can have one optional photo (JPEG, PNG or WebP, up to 5 MB). It is kept in the private
+  `report_photos` folder and only the reporter and the security desk can open it.
+- Choosing **Other** as the place shows a "Specify the location" box (up to 500 characters). The typed
+  place is saved on its own, shown wherever the place is shown, found by search, and used by matching:
+  two "Other" places score the same-place points only when the typed places are the same.
+
 ## Documents
 
 | Development | Document | What it is |
@@ -59,6 +71,10 @@ python manage.py migrate
 python manage.py createofficer --email achieng@strathmore.edu --name "Grace Achieng" --officer-no SO-001
 python manage.py runserver
 ```
+
+After getting a newer copy of the code, always run `python manage.py migrate` again before `runserver`.
+If `runserver` shows a warning about `STUDENT_EMAIL_DOMAINS` or `STAFF_EMAIL_DOMAINS`, open `.env` and
+set both lines to `strathmore.edu`.
 
 Open http://127.0.0.1:8000. Verification emails are printed in the terminal on a laptop:
 copy the link from there into the browser.
@@ -110,4 +126,4 @@ Restore, into an empty database after `python manage.py migrate`:
 python manage.py loaddata backup.json
 ```
 
-Keep `backup.json` and the `media` folder (the photos) somewhere safe. They contain personal data, so never put them on GitHub.
+Keep `backup.json`, the `media` folder (found-item photos) and the `report_photos` folder (report photos) somewhere safe. They contain personal data, so never put them on GitHub.
