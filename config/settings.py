@@ -150,9 +150,17 @@ RETENTION_DAYS = int(env('RETENTION_DAYS', '90'))
 # Items this many days from the end of their retention period are shown as "expiring soon".
 EXPIRING_SOON_DAYS = 14
 
-# Only campus email addresses can register.
-STUDENT_EMAIL_DOMAINS = env_list('STUDENT_EMAIL_DOMAINS', 'students.campus.ac.ke')
-STAFF_EMAIL_DOMAINS = env_list('STAFF_EMAIL_DOMAINS', 'campus.ac.ke')
+# Only campus email addresses can register: exactly @strathmore.edu, unless .env lists other endings.
+def email_endings(name):
+    """The email endings allowed to sign up. A blank line in .env still means strathmore.edu."""
+    endings = env_list(name)
+    if not endings:
+        endings = ['strathmore.edu']
+    return [ending.lower() for ending in endings]
+
+
+STUDENT_EMAIL_DOMAINS = email_endings('STUDENT_EMAIL_DOMAINS')
+STAFF_EMAIL_DOMAINS = email_endings('STAFF_EMAIL_DOMAINS')
 
 # When the site is live (DEBUG off) everything goes over HTTPS.
 if not DEBUG:
@@ -172,7 +180,7 @@ EMAIL_PORT = int(env('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', True)
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', 'Lost and Found <no-reply@campus.ac.ke>')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', 'Lost and Found <no-reply@strathmore.edu>')
 
 # ---------------------------------------------------------------- language and time
 LANGUAGE_CODE = 'en-gb'

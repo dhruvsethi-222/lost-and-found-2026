@@ -19,7 +19,7 @@ class Claim(models.Model):
 
     found_item = models.ForeignKey('items.FoundItem', on_delete=models.PROTECT, related_name='claims')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='claims')
-    answers = models.TextField(max_length=2000)                   # what makes it theirs (ST-I3, SF-I3)
+    answers = models.TextField(max_length=500)                   # what makes it theirs (ST-I3, SF-I3)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
 
     # The decision (AD-S3). Empty until the Admin decides.

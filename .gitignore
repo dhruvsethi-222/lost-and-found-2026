@@ -1,6 +1,7 @@
 .env
 db.sqlite3
 media/
+report_photos/
 staticfiles/
 __pycache__/
 *.pyc

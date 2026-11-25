@@ -3,7 +3,7 @@ Creates an Admin (security officer) account. Only the system owner can run it,
 because it runs on the server, not on a web page. Students and Staff therefore
 have no way to create Admin accounts.
 
-    python manage.py createofficer --email officer@campus.ac.ke --name "Grace Achieng" --officer-no SO-001
+    python manage.py createofficer --email achieng@strathmore.edu --name "Grace Achieng" --officer-no SO-001
 """
 import getpass
 

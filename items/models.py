@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.utils import timezone
 
@@ -28,6 +29,14 @@ def photo_path(instance, filename):
     return f'found_items/{uuid4().hex}{Path(filename).suffix.lower()}'
 
 
+def report_photo_storage():
+    return FileSystemStorage(location=settings.BASE_DIR / 'report_photos')
+
+
+def report_photo_path(instance, filename):
+    return f'{uuid4().hex}{Path(filename).suffix.lower()}'
+
+
 class ItemReport(models.Model):
     """A lost or found report made by a Student or a Staff member (class ItemReport, table item_report)."""
 
@@ -41,6 +50,7 @@ class ItemReport(models.Model):
     description = models.TextField(max_length=500)
     date = models.DateField(validators=[not_in_future])
     place = models.CharField(max_length=80, choices=Place.choices)
+    photo = models.ImageField(upload_to=report_photo_path, storage=report_photo_storage, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -128,9 +138,9 @@ class VerificationDetail(models.Model):
     """
 
     found_item = models.OneToOneField(FoundItem, on_delete=models.CASCADE, related_name='verification_detail')
-    serial_no = models.CharField('Serial number', max_length=80, blank=True)
-    marks = models.TextField('Marks', blank=True, help_text='Scratches, stickers, a torn corner.')
-    contents = models.TextField('What is inside it', blank=True, help_text='e.g. student ID, two keys.')
+    serial_no = models.CharField('Serial number', max_length=500, blank=True)
+    marks = models.TextField('Marks', max_length=500, blank=True, help_text='Scratches, stickers, a torn corner.')
+    contents = models.TextField('What is inside it', max_length=500, blank=True, help_text='e.g. student ID, two keys.')
 
     class Meta:
         db_table = 'verification_detail'

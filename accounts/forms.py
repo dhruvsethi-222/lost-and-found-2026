@@ -21,13 +21,12 @@ from .models import Role, User
 
 def check_campus_email(email, allowed_endings):
     """
-    NFR-01: only campus emails may sign up - if campus email endings are set in the .env file.
-    If no endings are set (an empty list), any email may sign up; it must still be verified.
+    NFR-01: only campus emails may sign up, e.g. exactly @strathmore.edu (not @sub.strathmore.edu).
     Returns the email in small letters, or raises an error to show under the field.
     """
     email = email.strip().lower()
     ending = email.split('@')[-1]                 # the part after the @
-    if allowed_endings and ending not in allowed_endings:
+    if ending not in allowed_endings:
         raise ValidationError(f'Use your campus email ending in @{allowed_endings[0]}.')
     if User.objects.filter(email=email).exists():
         raise ValidationError('An account with this email already exists. Log in instead.')
@@ -35,10 +34,8 @@ def check_campus_email(email, allowed_endings):
 
 
 def example_email(allowed_endings):
-    """The grey example shown inside the email box."""
-    if allowed_endings:
-        return 'name@' + allowed_endings[0]
-    return 'name@example.com'
+    """The grey example shown inside the email box, e.g. name@strathmore.edu."""
+    return 'name@' + allowed_endings[0]
 
 
 class RegistrationForm(forms.ModelForm):

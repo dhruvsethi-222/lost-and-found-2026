@@ -6,7 +6,7 @@ from items.choices import Category, Place
 
 
 class SearchForm(forms.Form):
-    q = forms.CharField(label='Search', required=False, max_length=100,
+    q = forms.CharField(label='Search', required=False, max_length=500,
                         widget=forms.TextInput(attrs={'placeholder': 'e.g. black wallet', 'type': 'search'}))
     category = forms.ChoiceField(label='Category', required=False,
                                  choices=[('', 'Any category')] + list(Category.choices))

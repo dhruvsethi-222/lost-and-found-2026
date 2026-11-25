@@ -56,7 +56,7 @@ venv\Scripts\activate            # Windows   (Mac/Linux: source venv/bin/activat
 pip install -r requirements.txt
 copy .env.example .env           # Windows   (Mac/Linux: cp .env.example .env)
 python manage.py migrate
-python manage.py createofficer --email achieng@campus.ac.ke --name "Grace Achieng" --officer-no SO-001
+python manage.py createofficer --email achieng@strathmore.edu --name "Grace Achieng" --officer-no SO-001
 python manage.py runserver
 ```
 
@@ -70,6 +70,10 @@ copy the link from there into the browser.
 3. `pip install mysqlclient`
 4. In `.env`, remove the `#` from the six "MySQL on your laptop" lines.
 5. `python manage.py migrate` makes all the tables in MySQL. Then `python manage.py runserver`.
+
+## Verification email
+
+For local testing, Django prints verification emails in the terminal running the site. Copy the verification link from that terminal into your browser. The external email API is planned. Until the provider is selected and configured, use the terminal for verification.
 
 ## Run the tests
 

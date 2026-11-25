@@ -53,5 +53,5 @@ def reply(request, post_id):
             Post.objects.create(user=request.user, reply_to=post, text=form.cleaned_data['text'])
             messages.success(request, 'Your reply is published.')
         else:
-            messages.error(request, 'Write something before replying (up to 280 characters).')
+            messages.error(request, 'Write something before replying (up to 500 characters).')
     return redirect('posts:list')

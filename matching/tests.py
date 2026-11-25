@@ -120,7 +120,7 @@ class MatchingFlowTests(TestCase):
         self.assertEqual(mail.outbox[0].to, [staff.email])
 
     def test_NFR03_same_category_place_and_date_is_ranked_first(self):
-        other = make_student(email='brian@students.campus.ac.ke', admission_no='227035')
+        other = make_student(email='brian@strathmore.edu', admission_no='227035')
         weaker = lost(other, description='Wallet', place='cafeteria', date=TODAY - timedelta(days=2))
         best = lost(self.student, description='Wallet')                       # same category, place and date
         self.client.force_login(self.officer)
