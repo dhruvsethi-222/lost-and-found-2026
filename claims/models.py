@@ -19,13 +19,15 @@ class Claim(models.Model):
 
     found_item = models.ForeignKey('items.FoundItem', on_delete=models.PROTECT, related_name='claims')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='claims')
-    answers = models.TextField(max_length=500)                   # what makes it theirs (ST-I3, SF-I3)
+    # What makes it theirs (ST-I3, SF-I3), then any follow-up questions and answers.
+    # Each entry is at most 500 characters (checked in claims/forms.py); the whole conversation can be longer.
+    answers = models.TextField()
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
 
     # The decision (AD-S3). Empty until the Admin decides.
     decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
                                    related_name='claims_decided')
-    reason = models.TextField(blank=True)                         # AD-I4
+    reason = models.TextField(max_length=500, blank=True)         # AD-I4
     decided_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

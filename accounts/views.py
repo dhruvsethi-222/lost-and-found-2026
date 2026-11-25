@@ -117,7 +117,7 @@ def account_list(request):
         raise PermissionDenied
 
     accounts = User.objects.filter(role__in=[Role.STUDENT, Role.STAFF]).order_by('name')
-    words = request.GET.get('q', '').strip()
+    words = request.GET.get('q', '').strip()[:500]           # search text is at most 500 characters
     if words:
         # Q(...) | Q(...) means "this OR that": the words can be in the name, email or ID number
         accounts = accounts.filter(Q(name__icontains=words) | Q(email__icontains=words)

@@ -108,7 +108,7 @@ class FoundItem(models.Model):
     disposed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
                                     related_name='found_items_disposed')
     disposed_at = models.DateTimeField(null=True, blank=True)
-    disposal_reason = models.TextField(blank=True)
+    disposal_reason = models.TextField(max_length=500, blank=True)
 
     class Meta:
         db_table = 'found_item'
