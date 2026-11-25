@@ -28,6 +28,11 @@ def link_in(email):
     return re.search(r'https?://\S+', email.body).group(0)
 
 
+# The agreed rule. Fixed here so an old .env file on a laptop cannot change what the tests check.
+STRATHMORE_ONLY = override_settings(STUDENT_EMAIL_DOMAINS=['strathmore.edu'], STAFF_EMAIL_DOMAINS=['strathmore.edu'])
+
+
+@STRATHMORE_ONLY
 class RegistrationTests(TestCase):
     def test_ST_P1_student_registers_and_gets_verification_email(self):
         response = self.client.post(reverse('accounts:register'), STUDENT_FORM)
@@ -68,6 +73,14 @@ class RegistrationTests(TestCase):
         for page in ('accounts:register', 'accounts:register_staff'):
             self.assertContains(self.client.get(reverse(page)), 'placeholder="name@strathmore.edu"')
 
+    def test_NFR01_the_system_warns_when_env_allows_other_endings(self):
+        from accounts.checks import check_email_endings
+        self.assertEqual(check_email_endings(None), [])
+        with self.settings(STUDENT_EMAIL_DOMAINS=['students.campus.ac.ke']):
+            warnings = check_email_endings(None)
+        self.assertEqual(len(warnings), 1)
+        self.assertIn('STUDENT_EMAIL_DOMAINS=strathmore.edu', warnings[0].hint)
+
     def test_NFR01_a_blank_env_line_still_means_strathmore_only(self):
         with patch.dict(os.environ, {'STUDENT_EMAIL_DOMAINS': ''}):
             self.assertEqual(email_endings('STUDENT_EMAIL_DOMAINS'), ['strathmore.edu'])
@@ -99,6 +112,7 @@ class RegistrationTests(TestCase):
         self.assertFalse(user.is_staff)
 
 
+@STRATHMORE_ONLY
 class VerificationTests(TestCase):
     def test_verification_link_verifies_the_account_once(self):
         self.client.post(reverse('accounts:register'), STUDENT_FORM)
