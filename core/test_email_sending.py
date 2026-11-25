@@ -69,6 +69,33 @@ class BrevoEmailTests(TestCase):
         self.assertContains(response, 'the verification email could not be sent just now')
 
 
+class MadeUpAccountTests(TestCase):
+    """With Brevo switched on, the demo and sample accounts never get real emails: they are printed instead."""
+
+    @BREVO
+    def test_demo_and_sample_addresses_are_printed_not_sent(self):
+        from core.mail import send_email
+        for address in ('jane@strathmore.edu', 'sample.kevin.mwangi@strathmore.edu'):
+            with patch('requests.Session.request') as call, patch('sys.stdout') as window:
+                self.assertTrue(send_email('Your claim: approved', 'Hello', address))
+            call.assert_not_called()                                  # nothing went to Brevo
+            self.assertIn(address, ''.join(str(c.args[0]) for c in window.write.call_args_list))
+
+    @BREVO
+    def test_real_addresses_still_go_to_brevo(self):
+        from core.mail import send_email
+        with patch('requests.Session.request', return_value=brevo_answer()) as call:
+            self.assertTrue(send_email('Your claim: approved', 'Hello', 'dhruv.test@strathmore.edu'))
+        call.assert_called_once()
+
+    def test_on_a_laptop_demo_accounts_get_their_emails_as_before(self):
+        from django.core import mail
+
+        from core.mail import send_email
+        send_email('Your claim: approved', 'Hello', 'jane@strathmore.edu')
+        self.assertEqual(mail.outbox[0].to, ['jane@strathmore.edu'])
+
+
 @BROKEN
 class EmailFailureTests(TestCase):
     """With no internet the action is still saved, and the page says the email was not sent."""
