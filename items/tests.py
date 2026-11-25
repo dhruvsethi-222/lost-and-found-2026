@@ -2,7 +2,10 @@
 import shutil
 import tempfile
 from datetime import timedelta
+from unittest.mock import patch
 
+from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -30,6 +33,33 @@ class ReportItemTests(TestCase):
         self.assertRedirects(response, reverse('core:my_page'))
         report = ItemReport.objects.get()                                     # ST-S2
         self.assertEqual((report.user, report.type, report.category), (self.student, 'lost', 'wallet'))
+
+    def test_report_photo_is_visible_to_the_reporter_and_security_desk(self):
+        field = ItemReport._meta.get_field('photo')
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(field, 'storage', FileSystemStorage(location=directory)):
+                response = self.client.post(reverse('items:report'), report_data(photo=photo()))
+                self.assertRedirects(response, reverse('core:my_page'))
+                report = ItemReport.objects.get()
+                url = reverse('items:report_photo', args=[report.pk])
+                self.assertContains(self.client.get(reverse('core:my_page')), url)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response['Content-Type'], 'image/png')
+                self.assertTrue(b''.join(response.streaming_content).startswith(b'\x89PNG'))
+                self.client.force_login(make_staff())
+                self.assertEqual(self.client.get(url).status_code, 404)
+                self.client.force_login(make_admin())
+                self.assertContains(self.client.get(reverse('items:desk_reports')), url)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(b''.join(response.streaming_content))
+
+    def test_report_rejects_an_invalid_image(self):
+        invalid = SimpleUploadedFile('wallet.png', b'not an image', content_type='image/png')
+        response = self.client.post(reverse('items:report'), report_data(photo=invalid))
+        self.assertContains(response, 'Upload a valid image')
+        self.assertFalse(ItemReport.objects.exists())
 
     def test_ST_P4_student_reports_a_found_item(self):
         self.client.post(reverse('items:report'), report_data(type='found', category='umbrella'))
@@ -62,7 +92,7 @@ class ReportItemTests(TestCase):
         self.assertFalse(ItemReport.objects.exists())
 
     def test_my_page_shows_only_my_own_reports(self):
-        other = make_student(email='brian@students.campus.ac.ke', admission_no='227035')
+        other = make_student(email='brian@strathmore.edu', admission_no='227035')
         ItemReport.objects.create(user=other, **{**report_data(description='Brian blue bag'), 'date': timezone.localdate()})
         self.client.post(reverse('items:report'), report_data())
         page = self.client.get(reverse('core:my_page'))

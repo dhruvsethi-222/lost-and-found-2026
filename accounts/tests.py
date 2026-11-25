@@ -3,6 +3,7 @@ Tests for accounts. Each test name starts with the requirement it proves (e.g. S
 so it matches the test register (TC-ST-P1).  Run:  python manage.py test
 """
 import re
+from io import StringIO
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -14,9 +15,9 @@ from django.urls import reverse
 from accounts.models import Admin, Role, Staff, Student, User
 from core.testing import PASSWORD, make_admin, make_staff, make_student
 
-STUDENT_FORM = {'name': 'Jane Wanjiru', 'email': 'jane@students.campus.ac.ke', 'admission_no': '227034',
+STUDENT_FORM = {'name': 'Jane Wanjiru', 'email': 'jane@strathmore.edu', 'admission_no': '227034',
                 'password1': PASSWORD, 'password2': PASSWORD}
-STAFF_FORM = {'name': 'Peter Otieno', 'email': 'otieno@campus.ac.ke', 'staff_no': 's1043',
+STAFF_FORM = {'name': 'Peter Otieno', 'email': 'otieno@strathmore.edu', 'staff_no': 's1043',
               'department': 'Computing', 'password1': PASSWORD, 'password2': PASSWORD}
 
 
@@ -28,7 +29,7 @@ class RegistrationTests(TestCase):
     def test_ST_P1_student_registers_and_gets_verification_email(self):
         response = self.client.post(reverse('accounts:register'), STUDENT_FORM)
         self.assertRedirects(response, reverse('accounts:verification_sent'))
-        user = User.objects.get(email='jane@students.campus.ac.ke')
+        user = User.objects.get(email='jane@strathmore.edu')
         self.assertEqual(user.role, Role.STUDENT)                      # ST-S1
         self.assertFalse(user.is_verified)
         self.assertEqual(len(mail.outbox), 1)                          # ST-O1 / EM-P1
@@ -36,20 +37,20 @@ class RegistrationTests(TestCase):
 
     def test_SY_P1_password_is_stored_only_as_a_hash(self):
         self.client.post(reverse('accounts:register'), STUDENT_FORM)
-        user = User.objects.get(email='jane@students.campus.ac.ke')
+        user = User.objects.get(email='jane@strathmore.edu')
         self.assertNotEqual(user.password, PASSWORD)
         self.assertTrue(user.password.startswith('pbkdf2_sha256$'))
         self.assertTrue(user.check_password(PASSWORD))
 
     def test_SF_P1_staff_registers_with_staff_id_and_department(self):
         self.client.post(reverse('accounts:register_staff'), STAFF_FORM)
-        user = User.objects.get(email='otieno@campus.ac.ke')
+        user = User.objects.get(email='otieno@strathmore.edu')
         self.assertEqual((user.role, user.staff_no, user.department), (Role.STAFF, 'S1043', 'Computing'))        # SF-S1
         self.assertEqual(len(mail.outbox), 1)                          # SF-O1 / EM-P1
-        self.assertEqual(mail.outbox[0].to, ['otieno@campus.ac.ke'])
+        self.assertEqual(mail.outbox[0].to, ['otieno@strathmore.edu'])
 
     def test_NFR01_only_campus_emails_can_register(self):
-        for email in ('jane@gmail.com', 'jane@campus.ac.ke'):     # outside, and a staff address on the student form
+        for email in ('jane@gmail.com', 'jane@sub.strathmore.edu'):  # outside domains and subdomains
             response = self.client.post(reverse('accounts:register'), {**STUDENT_FORM, 'email': email})
             self.assertContains(response, 'Use your campus email')
         self.assertFalse(User.objects.exists())
@@ -62,7 +63,7 @@ class RegistrationTests(TestCase):
         make_student()
         response = self.client.post(reverse('accounts:register'), STUDENT_FORM)
         self.assertContains(response, 'already exists')
-        response = self.client.post(reverse('accounts:register'), {**STUDENT_FORM, 'email': 'other@students.campus.ac.ke'})
+        response = self.client.post(reverse('accounts:register'), {**STUDENT_FORM, 'email': 'other@strathmore.edu'})
         self.assertContains(response, 'admission number already exists')
 
     def test_NFR01_weak_or_mismatched_passwords_are_refused(self):
@@ -106,9 +107,9 @@ class VerificationTests(TestCase):
 
     def test_resend_sends_a_new_link_only_to_unverified_accounts(self):
         make_student(verified=False)
-        self.client.post(reverse('accounts:resend'), {'email': 'jane@students.campus.ac.ke'})
+        self.client.post(reverse('accounts:resend'), {'email': 'jane@strathmore.edu'})
         self.assertEqual(len(mail.outbox), 1)
-        self.client.post(reverse('accounts:resend'), {'email': 'nobody@students.campus.ac.ke'})
+        self.client.post(reverse('accounts:resend'), {'email': 'nobody@strathmore.edu'})
         self.assertEqual(len(mail.outbox), 1)                          # same answer, no email sent
 
 
@@ -118,42 +119,42 @@ class LoginTests(TestCase):
 
     def test_ST_P2_unverified_student_cannot_log_in(self):
         make_student(verified=False)
-        response = self.login('accounts:login', 'jane@students.campus.ac.ke')
+        response = self.login('accounts:login', 'jane@strathmore.edu')
         self.assertContains(response, 'not verified yet')
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_ST_P2_verified_student_logs_in_to_my_page(self):
         make_student()
-        response = self.login('accounts:login', 'jane@students.campus.ac.ke')
+        response = self.login('accounts:login', 'jane@strathmore.edu')
         self.assertRedirects(response, reverse('core:after_login'), target_status_code=302)
         self.assertRedirects(self.client.get(reverse('core:after_login')), reverse('core:my_page'))
 
     def test_SF_P2_verified_staff_logs_in(self):
         make_staff()
-        self.login('accounts:login', 'otieno@campus.ac.ke')
+        self.login('accounts:login', 'otieno@strathmore.edu')
         self.assertIn('_auth_user_id', self.client.session)
 
     def test_wrong_password_is_refused(self):
         make_student()
-        response = self.client.post(reverse('accounts:login'), {'username': 'jane@students.campus.ac.ke', 'password': 'wrong'})
+        response = self.client.post(reverse('accounts:login'), {'username': 'jane@strathmore.edu', 'password': 'wrong'})
         self.assertContains(response, 'correct email and password')
 
     def test_AD_P1_admin_logs_in_on_the_desk_page_only(self):
         make_admin()
-        response = self.login('accounts:login', 'achieng@campus.ac.ke')
+        response = self.login('accounts:login', 'achieng@strathmore.edu')
         self.assertContains(response, 'Security desk log-in page')
-        response = self.login('accounts:desk_login', 'achieng@campus.ac.ke')
+        response = self.login('accounts:desk_login', 'achieng@strathmore.edu')
         self.assertRedirects(response, reverse('core:after_login'), target_status_code=302)
         self.assertRedirects(self.client.get(reverse('core:after_login')), reverse('core:desk'))
 
     def test_students_cannot_log_in_on_the_desk_page(self):
         make_student()
-        response = self.login('accounts:desk_login', 'jane@students.campus.ac.ke')
+        response = self.login('accounts:desk_login', 'jane@strathmore.edu')
         self.assertContains(response, 'This page is for security officers')
 
     def test_log_out(self):
         make_student()
-        self.login('accounts:login', 'jane@students.campus.ac.ke')
+        self.login('accounts:login', 'jane@strathmore.edu')
         self.client.post(reverse('accounts:logout'))
         self.assertNotIn('_auth_user_id', self.client.session)
 
@@ -189,13 +190,13 @@ class ModelTests(TestCase):
         self.assertEqual(User.objects.count(), 3)
 
     def test_createofficer_command_makes_a_verified_admin(self):
-        call_command('createofficer', email='Desk@Campus.ac.ke', name='Desk Officer', officer_no='SO-9',
-                     password=PASSWORD, stdout=open('/dev/null', 'w'))
-        officer = User.objects.get(email='desk@campus.ac.ke')
+        call_command('createofficer', email='Desk@strathmore.edu', name='Desk Officer', officer_no='SO-9',
+                     password=PASSWORD, stdout=StringIO())
+        officer = User.objects.get(email='desk@strathmore.edu')
         self.assertEqual((officer.role, officer.is_verified), (Role.ADMIN, True))
 
     def test_superuser_is_an_admin(self):
-        owner = User.objects.create_superuser('owner@campus.ac.ke', PASSWORD, name='Owner')
+        owner = User.objects.create_superuser('owner@strathmore.edu', PASSWORD, name='Owner')
         self.assertTrue(owner.is_admin_officer and owner.is_staff and owner.is_superuser)
 
 
@@ -212,7 +213,7 @@ class ManageAccountsTests(TestCase):
         page = self.client.get(reverse('accounts:desk_accounts'))
         self.assertContains(page, 'Jane Wanjiru')
         self.assertContains(page, 'Peter Otieno')
-        self.assertNotContains(page, 'achieng@campus.ac.ke')          # Admin accounts are not listed
+        self.assertNotContains(page, 'achieng@strathmore.edu')          # Admin accounts are not listed
         found = self.client.get(reverse('accounts:desk_accounts'), {'q': '227034'}).context['page'].object_list
         self.assertEqual(list(found), [self.student])
         staff_only = self.client.get(reverse('accounts:desk_accounts'), {'role': 'staff'}).context['page'].object_list
@@ -238,13 +239,13 @@ class ManageAccountsTests(TestCase):
         self.assertEqual(member.get(reverse('core:my_page')).status_code, 302)    # sent to the log-in page
 
     def test_AD_P10_admin_can_verify_an_email_by_hand(self):
-        unverified = make_student(email='brian@students.campus.ac.ke', admission_no='227035', verified=False)
+        unverified = make_student(email='brian@strathmore.edu', admission_no='227035', verified=False)
         self.client.post(reverse('accounts:desk_account_verify', args=[unverified.pk]))
         unverified.refresh_from_db()
         self.assertTrue(unverified.is_verified)
 
     def test_admin_accounts_cannot_be_changed_from_this_page(self):
-        other_officer = make_admin(email='otieno.k@campus.ac.ke', officer_no='SO-002')
+        other_officer = make_admin(email='otieno.k@strathmore.edu', officer_no='SO-002')
         response = self.client.post(reverse('accounts:desk_account_switch', args=[other_officer.pk]))
         self.assertEqual(response.status_code, 404)
         other_officer.refresh_from_db()

@@ -35,9 +35,9 @@ class PostTests(TestCase):
         page = self.client.get(reverse('posts:list'))
         self.assertContains(page, 'Thank you, it is mine.')
 
-    def test_ST_I4_a_post_needs_text_and_is_at_most_280_characters(self):
+    def test_ST_I4_a_post_needs_text_and_is_at_most_500_characters(self):
         self.client.post(reverse('posts:list'), {'text': ''})
-        self.client.post(reverse('posts:list'), {'text': 'x' * 281})
+        self.client.post(reverse('posts:list'), {'text': 'x' * 501})
         self.assertFalse(Post.objects.exists())
 
     def test_a_reply_cannot_be_replied_to(self):

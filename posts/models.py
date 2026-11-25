@@ -11,7 +11,7 @@ from django.db import models
 class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='posts')
     reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
-    text = models.TextField(max_length=280)            # ST-I4 / SF-I4: short, like a tweet
+    text = models.TextField(max_length=500)            # ST-I4 / SF-I4: short, like a tweet
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

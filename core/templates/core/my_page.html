@@ -70,7 +70,9 @@
           {% for report in reports %}
             <tr>
               <td>{{ report.kind_label }}</td>
-              <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span></td>
+              <td>{{ report.get_category_display }}<br><span class="small text-muted">{{ report.description|truncatechars:60 }}</span>
+                {% if report.photo %}<br><a href="{% url 'items:report_photo' report.pk %}">View report photo</a>{% endif %}
+              </td>
               <td>{{ report.get_place_display }}</td>
               <td>{{ report.date|date:"j M Y" }}</td>
               <td>{{ report.status_label }}</td>

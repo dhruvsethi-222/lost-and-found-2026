@@ -8,7 +8,7 @@
 function explain(field) {
   const v = field.validity;
   if (v.valueMissing) return field.type === 'radio' ? 'Please choose one.' : 'Please fill in this field.';
-  if (v.typeMismatch && field.type === 'email') return 'Enter a full email address, like name@campus.ac.ke.';
+  if (v.typeMismatch && field.type === 'email') return 'Enter a full email address, like name@strathmore.edu.';
   if (v.patternMismatch) return field.title || 'Please check the format.';
   if (v.rangeOverflow) return 'The date cannot be in the future.';
   if (v.tooLong) return 'This is too long.';

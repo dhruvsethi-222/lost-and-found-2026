@@ -21,6 +21,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -42,7 +43,7 @@ def report_item(request):
 
     role = request.user.role
     if request.method == 'POST':                      # the form was sent
-        form = ItemReportForm(request.POST, role=role)
+        form = ItemReportForm(request.POST, request.FILES, role=role)
         if form.is_valid():
             report = form.save(commit=False)          # build the report, do not save yet
             report.user = request.user                # it belongs to whoever is logged in
@@ -63,6 +64,21 @@ def report_item(request):
         start_type = 'found' if request.GET.get('type') == 'found' else 'lost'
         form = ItemReportForm(role=role, initial={'type': start_type})
     return render(request, 'items/report_form.html', {'form': form})
+
+
+@login_required
+def report_photo(request, pk):
+    reports = ItemReport.objects.exclude(photo='')
+    if request.user.role != Role.ADMIN:
+        reports = reports.filter(user=request.user)
+    report = get_object_or_404(reports, pk=pk)
+    try:
+        photo = report.photo.open('rb')
+    except FileNotFoundError as error:
+        raise Http404('Photo not found.') from error
+    response = FileResponse(photo, filename=report.photo.name)
+    response['Cache-Control'] = 'private, no-store'
+    return response
 
 
 @login_required(login_url='accounts:desk_login')

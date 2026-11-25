@@ -5,7 +5,7 @@ from core.forms import style_form
 
 
 class PostForm(forms.Form):
-    text = forms.CharField(label='Your post', max_length=280,
+    text = forms.CharField(label='Your post', max_length=500,
                            widget=forms.Textarea(attrs={'rows': 2, 'placeholder': 'e.g. Has anyone seen a blue umbrella near the library?'}))
 
     def __init__(self, *args, **kwargs):

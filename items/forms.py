@@ -1,4 +1,6 @@
 """Forms for reporting items (Students, Staff) and recording found items (Admin)."""
+from pathlib import Path
+
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -29,7 +31,7 @@ class ItemReportForm(forms.ModelForm):
 
     class Meta:
         model = ItemReport
-        fields = ['type', 'category', 'description', 'date', 'place']
+        fields = ['type', 'category', 'description', 'date', 'place', 'photo']
         widgets = {'type': forms.RadioSelect,
                    'date': DateInput(format='%Y-%m-%d'),
                    'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Colour, brand, marks'})}
@@ -49,7 +51,20 @@ class ItemReportForm(forms.ModelForm):
         set_first_choice(self.fields['place'], 'Choose a place')
         # The calendar does not offer dates after today (NFR-03).
         self.fields['date'].widget.attrs['max'] = timezone.localdate().isoformat()
+        self.fields['photo'].widget.attrs['accept'] = 'image/jpeg,image/png,image/webp'
+        self.fields['photo'].help_text = f'Optional. JPEG, PNG or WebP, up to {settings.MAX_PHOTO_MB} MB.'
         style_form(self)
+
+    def clean_photo(self):
+        photo = self.cleaned_data['photo']
+        if not photo:
+            return photo
+        if photo.size > settings.MAX_PHOTO_MB * 1024 * 1024:
+            raise ValidationError(f'The photo is too big. Use one up to {settings.MAX_PHOTO_MB} MB.')
+        extensions = {'JPEG': {'.jpg', '.jpeg'}, 'PNG': {'.png'}, 'WEBP': {'.webp'}}
+        if Path(photo.name).suffix.lower() not in extensions.get(photo.image.format, set()):
+            raise ValidationError('Upload a JPEG, PNG or WebP photo with the matching file extension.')
+        return photo
 
 
 class FoundItemForm(forms.ModelForm):

@@ -151,8 +151,8 @@ RETENTION_DAYS = int(env('RETENTION_DAYS', '90'))
 EXPIRING_SOON_DAYS = 14
 
 # Only campus email addresses can register.
-STUDENT_EMAIL_DOMAINS = env_list('STUDENT_EMAIL_DOMAINS', 'students.campus.ac.ke')
-STAFF_EMAIL_DOMAINS = env_list('STAFF_EMAIL_DOMAINS', 'campus.ac.ke')
+STUDENT_EMAIL_DOMAINS = env_list('STUDENT_EMAIL_DOMAINS', 'strathmore.edu')
+STAFF_EMAIL_DOMAINS = env_list('STAFF_EMAIL_DOMAINS', 'strathmore.edu')
 
 # When the site is live (DEBUG off) everything goes over HTTPS.
 if not DEBUG:

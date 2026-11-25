@@ -8,7 +8,7 @@ class ClaimForm(forms.Form):
     """ST-I3 / SF-I3: the claimant says what makes the item theirs."""
 
     answers = forms.CharField(
-        label='What makes it yours?', max_length=2000,
+        label='What makes it yours?', max_length=500,
         widget=forms.Textarea(attrs={'rows': 4, 'placeholder': 'e.g. what is inside it, a mark on it, the serial number'}),
         help_text='Give details only the owner would know. A security officer compares them with the item.')
 
@@ -20,7 +20,7 @@ class ClaimForm(forms.Form):
 class MoreDetailsForm(forms.Form):
     """The claimant answers the Admin's question when more evidence was requested (AD-P7)."""
 
-    details = forms.CharField(label='More details', max_length=1000,
+    details = forms.CharField(label='More details', max_length=500,
                               widget=forms.Textarea(attrs={'rows': 3}))
 
     def __init__(self, *args, **kwargs):

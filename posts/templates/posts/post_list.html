@@ -28,7 +28,7 @@
       <form method="post" action="{% url 'posts:reply' post.pk %}" class="reply-form">
         {% csrf_token %}
         <label class="visually-hidden" for="reply-{{ post.pk }}">Reply to {{ post.user.name }}</label>
-        <input class="form-control form-control-sm" id="reply-{{ post.pk }}" name="text" maxlength="280" required placeholder="Write a reply">
+        <input class="form-control form-control-sm" id="reply-{{ post.pk }}" name="text" maxlength="500" required placeholder="Write a reply">
         <button type="submit" class="btn btn-sm btn-outline-success">Reply</button>
       </form>
     </article>

@@ -85,7 +85,7 @@ class SubmitClaimTests(TestCase):
         self.assertEqual(self.client.get(reverse('claims:new', args=[self.item.pk])).status_code, 302)
 
     def test_my_page_shows_only_my_own_claims(self):
-        other = make_student(email='brian@students.campus.ac.ke', admission_no='227035')
+        other = make_student(email='brian@strathmore.edu', admission_no='227035')
         Claim.objects.create(found_item=self.item, user=other, answers='Brian says it has a red zip')
         self.assertNotContains(self.client.get(reverse('core:my_page')), 'red zip')
 
@@ -187,7 +187,7 @@ class VerifyClaimTests(TestCase):
         self.assertNotContains(response, 'name="decision"')                   # the buttons are gone
 
     def test_only_one_claim_can_be_approved_for_an_item(self):
-        other = make_student(email='brian@students.campus.ac.ke', admission_no='227035')
+        other = make_student(email='brian@strathmore.edu', admission_no='227035')
         second = Claim.objects.create(found_item=self.item, user=other, answers='It is mine')
         self.decide('approve')
         second.refresh_from_db()
@@ -198,7 +198,7 @@ class VerifyClaimTests(TestCase):
 
     def test_one_member_cannot_answer_for_another_members_claim(self):
         self.decide('more', reason='What colour is the lining?')
-        other = make_student(email='brian@students.campus.ac.ke', admission_no='227035')
+        other = make_student(email='brian@strathmore.edu', admission_no='227035')
         self.client.force_login(other)
         response = self.client.post(reverse('claims:add_details', args=[self.claim.pk]), {'details': 'Red'})
         self.assertEqual(response.status_code, 404)
