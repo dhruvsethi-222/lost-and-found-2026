@@ -1,7 +1,9 @@
 """Tests for reporting items and the Admin intake of found items."""
+import io
 import shutil
 import tempfile
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import patch
 
 from django.core.files.storage import FileSystemStorage
@@ -9,6 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from core.testing import make_admin, make_staff, make_student, photo
 from items.models import FoundItem, ItemReport, VerificationDetail
@@ -105,6 +108,76 @@ class ReportItemTests(TestCase):
 
 
 @override_settings(MEDIA_ROOT=MEDIA)
+class ReportPhotoTests(TestCase):
+    """The optional report photo: JPEG, PNG or WebP up to 5 MB, seen only by the reporter and the security desk."""
+
+    def setUp(self):
+        self.folder = tempfile.mkdtemp()               # report photos go to a throw-away private folder
+        field = ItemReport._meta.get_field('photo')
+        patcher = patch.object(field, 'storage', FileSystemStorage(location=self.folder))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.addCleanup(shutil.rmtree, self.folder, ignore_errors=True)
+        self.student = make_student()
+        self.client.force_login(self.student)
+
+    def send(self, upload):
+        return self.client.post(reverse('items:report'), report_data(photo=upload))
+
+    def image(self, name, image_format, content_type):
+        buffer = io.BytesIO()
+        Image.new('RGB', (8, 8), (200, 30, 30)).save(buffer, format=image_format)
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type=content_type)
+
+    def test_a_report_without_a_photo_still_works(self):
+        self.assertRedirects(self.client.post(reverse('items:report'), report_data()), reverse('core:my_page'))
+        report = ItemReport.objects.get()
+        self.assertFalse(report.photo)
+        self.assertNotContains(self.client.get(reverse('core:my_page')), 'View report photo')
+        self.assertEqual(self.client.get(reverse('items:report_photo', args=[report.pk])).status_code, 404)
+
+    def test_jpeg_png_and_webp_are_accepted(self):
+        for name, image_format, content_type in (('a.jpg', 'JPEG', 'image/jpeg'), ('b.png', 'PNG', 'image/png'),
+                                                 ('c.webp', 'WEBP', 'image/webp')):
+            self.assertRedirects(self.send(self.image(name, image_format, content_type)), reverse('core:my_page'))
+        self.assertEqual(ItemReport.objects.exclude(photo='').count(), 3)
+        webp = ItemReport.objects.get(photo__endswith='.webp')
+        response = self.client.get(reverse('items:report_photo', args=[webp.pk]))
+        self.assertEqual(response['Content-Type'], 'image/webp')
+        self.assertEqual(response['Cache-Control'], 'private, no-store')
+
+    def test_other_image_types_and_mismatched_names_are_refused(self):
+        self.assertContains(self.send(self.image('d.gif', 'GIF', 'image/gif')), 'Upload a JPEG, PNG or WebP photo')
+        self.assertContains(self.send(self.image('e.png', 'JPEG', 'image/png')), 'Upload a JPEG, PNG or WebP photo')
+        self.assertFalse(ItemReport.objects.exists())
+
+    def test_a_photo_over_5_mb_is_refused(self):
+        small = self.image('big.png', 'PNG', 'image/png').read()
+        padding = b'\0' * (5 * 1024 * 1024 + 1 - len(small))        # a real image made just over 5 MB
+        big = SimpleUploadedFile('big.png', small + padding, content_type='image/png')
+        self.assertContains(self.send(big), 'The photo is too big')
+        self.assertFalse(ItemReport.objects.exists())
+
+    def test_only_the_reporter_and_the_security_desk_can_open_the_photo(self):
+        self.send(photo())
+        url = reverse('items:report_photo', args=[ItemReport.objects.get().pk])
+        self.assertEqual(self.client.get(url).status_code, 200)                       # the reporter
+        self.client.force_login(make_student(email='brian@strathmore.edu', admission_no='227035'))
+        self.assertEqual(self.client.get(url).status_code, 404)                       # another student
+        self.client.force_login(make_admin())
+        self.assertEqual(self.client.get(url).status_code, 200)                       # the security desk
+        self.client.logout()
+        self.assertEqual(self.client.get(url).status_code, 302)                       # not logged in: log-in page
+
+    def test_report_photos_are_kept_out_of_public_search_and_media(self):
+        self.send(photo())
+        report = ItemReport.objects.get()
+        self.assertFalse(report.photo.name.startswith('found_items/'))
+        self.assertTrue((Path(self.folder) / report.photo.name).exists())             # in the private folder
+        page = self.client.get(reverse('search:search'))
+        self.assertNotContains(page, reverse('items:report_photo', args=[report.pk]))
+
+
 class RecordFoundItemTests(TestCase):
     @classmethod
     def tearDownClass(cls):
